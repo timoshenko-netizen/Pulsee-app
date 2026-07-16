@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { FlatList, Image, StyleSheet, Text, View, useWindowDimensions, type NativeSyntheticEvent, type NativeScrollEvent } from "react-native";
+import { FlatList, Image, Platform, StyleSheet, Text, View, useWindowDimensions, type NativeSyntheticEvent, type NativeScrollEvent } from "react-native";
 import { AccessibilityInfo } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { Icon } from "@/design/icons/Icon";
@@ -41,16 +43,19 @@ const VIDEO_P3 = require("../../assets/videos/8347677-sd_506_960_30fps.mp4");
   vertical FlatList with pagingEnabled instead of CSS scroll-snap.
 
   The web version's once-per-user "swipe hint seen" gate used
-  localStorage; RN has no equivalent without adding a storage dependency,
-  so a module-level flag is used instead — same graceful-degradation
-  the web version already accepted for private-mode/no-storage (replays
-  every load), just always-on here since it resets per app launch.
+  localStorage; here it's AsyncStorage under the same key, with the same
+  try/catch graceful-degradation the web version already accepted (if
+  storage is unavailable, the hint just replays every load).
 */
-let swipeHintSeenThisSession = false;
+const SWIPE_HINT_KEY = "pulse.feed.swipeHintSeen.v2";
 
 /** Dev-only: lets FeedStateOnboarding force the first-run coach-mark to replay. */
-export function resetSwipeHintSeen() {
-  swipeHintSeenThisSession = false;
+export async function resetSwipeHintSeen() {
+  try {
+    await AsyncStorage.removeItem(SWIPE_HINT_KEY);
+  } catch {
+    // storage unavailable — hint replays every load anyway.
+  }
 }
 
 type Post = {
@@ -151,6 +156,7 @@ function FeedPostMedia({ post, height }: { post: Post; height: number }) {
 
 export default function FeedDefault({ initialFeedState = "default" }: FeedDefaultProps) {
   const { height: windowHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [posts, setPosts] = useState(INITIAL_POSTS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeFeedTab, setActiveFeedTab] = useState("For you");
@@ -219,7 +225,9 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
     clearTimeout(swipeTimerRef.current);
     clearTimeout(swipeCapRef.current);
     if (swipeShownRef.current) {
-      swipeHintSeenThisSession = true;
+      AsyncStorage.setItem(SWIPE_HINT_KEY, "1").catch(() => {
+        // storage unavailable — hint replays every load anyway.
+      });
       swipeShownRef.current = false;
       setSwipeHintVisible(false);
     }
@@ -233,17 +241,23 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
     }
   }
   useEffect(() => {
+    let cancelled = false;
     AccessibilityInfo.isReduceMotionEnabled?.().then(setReducedMotion).catch(() => {});
-    if (swipeHintSeenThisSession) return;
-    swipeTimerRef.current = setTimeout(() => {
-      if (swipeSuppressedRef.current) return;
-      if (sheetRef.current || feedStateRef.current !== "default") return;
-      swipeShownRef.current = true;
-      setSwipeHintVisible(true);
-      const done = reducedMotion ? 2600 : 1800 * 3 + 250;
-      swipeCapRef.current = setTimeout(() => teardownSwipeHint(), done);
-    }, 1500);
+    AsyncStorage.getItem(SWIPE_HINT_KEY)
+      .catch(() => null)
+      .then((seen) => {
+        if (cancelled || seen) return;
+        swipeTimerRef.current = setTimeout(() => {
+          if (swipeSuppressedRef.current) return;
+          if (sheetRef.current || feedStateRef.current !== "default") return;
+          swipeShownRef.current = true;
+          setSwipeHintVisible(true);
+          const done = reducedMotion ? 2600 : 1800 * 3 + 250;
+          swipeCapRef.current = setTimeout(() => teardownSwipeHint(), done);
+        }, 1500);
+      });
     return () => {
+      cancelled = true;
       clearTimeout(swipeTimerRef.current);
       clearTimeout(swipeCapRef.current);
     };
@@ -290,8 +304,12 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
 
       {/* Top chrome overlay — status bar / carousel tabs / search stay up regardless of feed state */}
       <View pointerEvents="box-none" style={{ position: "absolute", left: 0, top: 0, width: "100%", zIndex: 10 }}>
-        <LinearGradient colors={["rgba(0,0,0,0.35)", "rgba(0,0,0,0)"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ width: "100%", gap: 8 }}>
-          <StatusBar />
+        <LinearGradient colors={["rgba(0,0,0,0.35)", "rgba(0,0,0,0)"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ width: "100%", gap: 8, paddingTop: Platform.OS === "web" ? 0 : insets.top }}>
+          {/* The decorative StatusBar is only for the web preview, which has no
+              real device chrome to show through — on native platforms the OS
+              draws its own status bar, so we just reserve space (insets.top)
+              instead of rendering a fake one on top of it. */}
+          {Platform.OS === "web" && <StatusBar />}
           <View style={{ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
             <View style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
               <LiveBadge size={24} />
@@ -316,7 +334,7 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
 
       {feedState === "default" && (
         <View pointerEvents="box-none" style={{ position: "absolute", bottom: 0, left: 0, width: "100%", zIndex: 10 }}>
-          <LinearGradient colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.55)"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ width: "100%", gap: 14, paddingBottom: 118 }}>
+          <LinearGradient colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.55)"]} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={{ width: "100%", gap: 14, paddingBottom: 118 + insets.bottom }}>
             <View style={{ width: "100%", flexDirection: "row", alignItems: "flex-end", gap: 16, paddingLeft: 16, paddingRight: 10 }}>
               <View style={{ flex: 1, minWidth: 0, gap: 8, alignItems: "flex-start" }}>
                 <FeedUsername username={active.username} />
@@ -367,7 +385,7 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
       )}
 
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 30 }}>
-        <TabBar active={tab} onChange={setTab} labels={{ feed: "Watch", earn: "Balance" }} />
+        <TabBar active={tab} onChange={setTab} labels={{ feed: "Watch", earn: "Balance" }} bottomInset={insets.bottom} />
       </View>
 
       {/* Donate confirm sheet — amount already chosen via the chip that opened it; this is confirm-only */}

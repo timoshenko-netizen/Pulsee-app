@@ -7,12 +7,12 @@ import { typography } from "@/design/theme";
 /*
   Ported from starter/src/components/patterns/tab-bar/TabBar.tsx. Same
   fill-vs-outline-glyph-swap-on-selection behavior (see that file's own
-  header comment for the full history of the bug this corrected). No
-  PhoneShell/home-indicator concept on a real device — the bottom safe
-  area is handled by the consuming screen via SafeAreaView, not baked
-  into this component's own bottom padding like the web version's fixed
-  24px (which existed only to clear PhoneShell's simulated home
-  indicator overlay).
+  header comment for the full history of the bug this corrected).
+
+  `bottomInset` (pass the consuming screen's useSafeAreaInsets().bottom)
+  extends this component's own paddingBottom rather than being added by
+  a wrapper outside it — the blur/background needs to cover the home
+  indicator / gesture-nav area too, not leave a transparent gap below it.
 */
 
 const TABS: { key: string; outlineIcon: IconName; fillIcon: IconName; label: string }[] = [
@@ -30,9 +30,11 @@ export type TabBarProps = {
   labels?: Partial<Record<string, string>>;
   /** Grow the active tab's icon to 28px (inactive stays 24px). Off by default — all tabs render at the same 24px size. */
   growActive?: boolean;
+  /** Extra bottom padding to clear the device's home indicator / gesture-nav area — pass useSafeAreaInsets().bottom. Defaults to 0 (e.g. web preview). */
+  bottomInset?: number;
 };
 
-export function TabBar({ active, onChange, labels, growActive = false }: TabBarProps) {
+export function TabBar({ active, onChange, labels, growActive = false, bottomInset = 0 }: TabBarProps) {
   return (
     <BlurView
       intensity={30}
@@ -43,7 +45,7 @@ export function TabBar({ active, onChange, labels, growActive = false }: TabBarP
         width: "100%",
         paddingHorizontal: 14,
         paddingTop: 12,
-        paddingBottom: 12,
+        paddingBottom: 12 + bottomInset,
         borderTopLeftRadius: 28,
         borderTopRightRadius: 28,
         backgroundColor: "rgba(8,10,11,0.2)",
