@@ -275,7 +275,7 @@ export function CommentsSheet({ open, postKey, onClose }: { open: boolean; postK
               alignItems: "center",
             }}
           >
-            <Text style={{ color: "white", fontSize: 13 }}>{flash}</Text>
+            <Text style={{ color: "white", fontSize: 13, fontFamily: "Montserrat" }}>{flash}</Text>
           </View>
         )}
 
@@ -288,7 +288,7 @@ export function CommentsSheet({ open, postKey, onClose }: { open: boolean; postK
             ))}
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 12 }}>
-            {editId && <Text style={{ color: ACCENT_ORANGE_START, fontSize: 12, fontWeight: "700" }}>Editing</Text>}
+            {editId && <Text style={{ color: ACCENT_ORANGE_START, fontSize: 12, fontWeight: "600", fontFamily: "Montserrat" }}>Editing</Text>}
             <TextInput
               ref={inputRef}
               value={text}
@@ -297,7 +297,7 @@ export function CommentsSheet({ open, postKey, onClose }: { open: boolean; postK
               placeholder="Add comment"
               placeholderTextColor="rgba(255,255,255,0.4)"
               returnKeyType="send"
-              style={{ flex: 1, minWidth: 0, color: "white", fontSize: 14, fontWeight: "500" }}
+              style={{ flex: 1, minWidth: 0, color: "white", fontSize: 14, fontWeight: "500", fontFamily: "Montserrat" }}
             />
             <Pressable onPress={canSend ? send : undefined} style={{ opacity: canSend ? 1 : 0.4 }} pointerEvents={canSend ? "auto" : "none"}>
               <LinearGradient

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FlatList, Image, Platform, StyleSheet, Text, View, useWindowDimensions, type NativeSyntheticEvent, type NativeScrollEvent } from "react-native";
+import { FlatList, Image, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions, type NativeSyntheticEvent, type NativeScrollEvent } from "react-native";
 import { AccessibilityInfo } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -24,6 +24,7 @@ import { FeedRightBar } from "@/components/features/feed/FeedRightBar";
 import { CommentsSheet } from "@/components/features/feed/CommentsSheet";
 import { FeedSwipeHint } from "@/components/features/feed/FeedSwipeHint";
 import type { IconName } from "@/design/icons/Icon";
+import { typography } from "@/design/theme";
 
 const topBackground = require("@/components/features/feed/assets/comments-top-background.png");
 const VIDEO_P1 = require("../../assets/videos/16183412_720_1280_30fps.mp4");
@@ -282,7 +283,7 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
           {swipeHintVisible && (
             <View pointerEvents="none" style={{ position: "absolute", left: 0, right: 0, top: "49%", zIndex: 40, alignItems: "center" }}>
               <FeedSwipeHint label="" travel={56} reducedMotion={reducedMotion} />
-              <Text style={{ marginTop: 12, color: "white", fontSize: 13, fontWeight: "700", textShadowColor: "rgba(0,0,0,0.6)", textShadowRadius: 6 }}>
+              <Text style={[typography.captionBold, { marginTop: 12, color: "white", textShadowColor: "rgba(0,0,0,0.6)", textShadowRadius: 6 }]}>
                 Swipe up for more
               </Text>
             </View>
@@ -319,8 +320,25 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
                 <FeedCarouselItem key={t.key} label={t.label} icon={t.icon} selected={activeFeedTab === t.key} onClick={() => setActiveFeedTab(t.key)} />
               ))}
             </View>
-            <View style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
-              <Icon name="magnifying-glass" size={24} color="white" />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+              {/* PLACEMENT MOCKUP ONLY — not wired to a real debug menu yet,
+                  just here so the trigger's position/size/tappability can be
+                  judged against the live nav row before building the menu
+                  behind it. Docked into this row (not an absolute overlay)
+                  so it inherits correct alignment on every platform instead
+                  of risking collision with OS/simulated status-bar chrome. */}
+              {__DEV__ && (
+                <Pressable
+                  onPress={() => {}}
+                  hitSlop={8}
+                  style={{ width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.35)" }}
+                >
+                  <Icon name="gear-outline" size={16} color="rgba(255,255,255,0.6)" />
+                </Pressable>
+              )}
+              <View style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
+                <Icon name="magnifying-glass" size={24} color="white" />
+              </View>
             </View>
           </View>
           {feedState === "default" && (
@@ -338,7 +356,7 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
             <View style={{ width: "100%", flexDirection: "row", alignItems: "flex-end", gap: 16, paddingLeft: 16, paddingRight: 10 }}>
               <View style={{ flex: 1, minWidth: 0, gap: 8, alignItems: "flex-start" }}>
                 <FeedUsername username={active.username} />
-                <Text numberOfLines={1} style={{ width: "100%", color: "white", fontSize: 13, textShadowColor: "rgba(0,0,0,0.4)", textShadowRadius: 2 }}>
+                <Text numberOfLines={1} style={[typography.captionRegular, { width: "100%", color: "white", textShadowColor: "rgba(0,0,0,0.4)", textShadowRadius: 2 }]}>
                   {active.caption}
                 </Text>
               </View>
@@ -402,10 +420,10 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
                 <Coin name="see" size={72.6} />
               </View>
               <View style={{ alignItems: "center", gap: 10, width: 248 }}>
-                <Text style={{ color: "white", fontSize: 20, fontWeight: "700", textAlign: "center" }}>
+                <Text style={[typography.title, { color: "white", textAlign: "center" }]}>
                   Donate {donateAmount} SEE?
                 </Text>
-                <Text style={{ color: "white", fontSize: 14, textAlign: "center", width: 248 }}>
+                <Text style={[typography.bodyBasicRegular, { color: "white", textAlign: "center", width: 248 }]}>
                   This amount will be deducted from your internal wallet.
                 </Text>
               </View>
