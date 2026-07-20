@@ -24,14 +24,14 @@ export function StatusPanel({ icon, title, description, actionLabel, onAction, l
         {icon && <View style={{ width: 40, height: 40 }}>{icon}</View>}
         <View style={{ alignItems: "center", gap: spacing["4xs"] }}>
           <Text style={[large ? typography.title : typography.bodyBasicBold, { color: "white", textAlign: "center" }]}>{title}</Text>
-          {description && <Text style={[typography.captionRegular, { color: "rgba(255,255,255,0.7)", textAlign: "center" }]}>{description}</Text>}
+          {description ? <Text style={[typography.captionRegular, { color: "rgba(255,255,255,0.7)", textAlign: "center" }]}>{description}</Text> : null}
         </View>
       </View>
-      {actionLabel && (
+      {actionLabel ? (
         <Button variant="secondary" size="m" onPress={onAction}>
           {actionLabel}
         </Button>
-      )}
+      ) : null}
     </View>
   );
 }

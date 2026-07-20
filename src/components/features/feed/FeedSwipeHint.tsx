@@ -99,9 +99,9 @@ export function FeedSwipeHint({ label = "", travel = 56, reducedMotion = false }
           <FeedFingerTapped width={32} height={32} style={{ position: "absolute", top: 0, left: 0 }} />
         )}
       </Animated.View>
-      {label && (
+      {label ? (
         <Text style={[typography.captionBold, { color: "white", textShadowColor: "rgba(0,0,0,0.6)", textShadowRadius: 6 }]}>{label}</Text>
-      )}
+      ) : null}
     </View>
   );
 }

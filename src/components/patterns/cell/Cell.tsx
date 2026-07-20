@@ -44,19 +44,19 @@ export function Cell({ leftSlot, label, sublabel, boldLabel = false, value, subv
         <Text numberOfLines={1} style={[typography.bodyBasicRegular, { color: "white", fontWeight: boldLabel ? "700" : "500" }]}>
           {label}
         </Text>
-        {sublabel && (
+        {sublabel ? (
           <Text numberOfLines={1} style={[typography.captionRegular, { color: "rgba(255,255,255,0.7)" }]}>
             {sublabel}
           </Text>
-        )}
+        ) : null}
       </View>
 
-      {value && (
+      {value ? (
         <View style={{ flexShrink: 0, flexDirection: "column", alignItems: "flex-end" }}>
           <Text style={[typography.bodyBasicRegular, { color: "white" }]}>{value}</Text>
-          {subvalue && <Text style={[typography.captionRegular, { color: "rgba(255,255,255,0.7)" }]}>{subvalue}</Text>}
+          {subvalue ? <Text style={[typography.captionRegular, { color: "rgba(255,255,255,0.7)" }]}>{subvalue}</Text> : null}
         </View>
-      )}
+      ) : null}
 
       {rightSlot && <View style={{ flexShrink: 0, flexDirection: "row", alignItems: "center", paddingRight: spacing.m }}>{rightSlot}</View>}
     </Wrapper>

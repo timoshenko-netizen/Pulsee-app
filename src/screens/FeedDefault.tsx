@@ -8,7 +8,6 @@ import { useVideoPlayer, VideoView } from "expo-video";
 import { Icon } from "@/design/icons/Icon";
 import { Coin } from "@/design/coins/Coin";
 import { Button } from "@/components/primitives/button/Button";
-import { TabBar } from "@/components/patterns/tab-bar/TabBar";
 import { StatusBar } from "@/components/patterns/status-bar/StatusBar";
 import { BottomSheet } from "@/components/patterns/bottom-sheet/BottomSheet";
 import { Snackbar } from "@/components/patterns/snack/Snackbar";
@@ -25,6 +24,7 @@ import { CommentsSheet } from "@/components/features/feed/CommentsSheet";
 import { FeedSwipeHint } from "@/components/features/feed/FeedSwipeHint";
 import type { IconName } from "@/design/icons/Icon";
 import { typography } from "@/design/theme";
+import { DevMenu } from "@/screens/dev/DevMenu";
 
 const topBackground = require("@/components/features/feed/assets/comments-top-background.png");
 const VIDEO_P1 = require("../../assets/videos/16183412_720_1280_30fps.mp4");
@@ -50,7 +50,7 @@ const VIDEO_P3 = require("../../assets/videos/8347677-sd_506_960_30fps.mp4");
 */
 const SWIPE_HINT_KEY = "pulse.feed.swipeHintSeen.v2";
 
-/** Dev-only: lets FeedStateOnboarding force the first-run coach-mark to replay. */
+/** Dev-only: clears the "seen" gate so the coach-mark can replay — see debugReplaySwipeHint below. */
 export async function resetSwipeHintSeen() {
   try {
     await AsyncStorage.removeItem(SWIPE_HINT_KEY);
@@ -150,7 +150,7 @@ function FeedPostMedia({ post, height }: { post: Post; height: number }) {
   return (
     <View style={{ width: "100%", height, backgroundColor: "#101314", overflow: "hidden" }}>
       <Image source={{ uri: post.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-      {post.video && <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} />}
+      {post.video != null ? <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} /> : null}
     </View>
   );
 }
@@ -161,7 +161,6 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
   const [posts, setPosts] = useState(INITIAL_POSTS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeFeedTab, setActiveFeedTab] = useState("For you");
-  const [tab, setTab] = useState("feed");
   const [sheet, setSheet] = useState<Sheet>(null);
   const [snack, setSnack] = useState<string | null>(null);
   const [feedState, setFeedState] = useState<FeedState>(initialFeedState);
@@ -241,6 +240,18 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
       clearTimeout(swipeTimerRef.current);
     }
   }
+  function showSwipeHint() {
+    clearTimeout(swipeCapRef.current);
+    swipeSuppressedRef.current = false;
+    swipeShownRef.current = true;
+    setSwipeHintVisible(true);
+    const done = reducedMotion ? 2600 : 1800 * 3 + 250;
+    swipeCapRef.current = setTimeout(() => teardownSwipeHint(), done);
+  }
+  /** Dev-only: forces the coach-mark to replay right now, bypassing the once-per-user gate. */
+  function debugReplaySwipeHint() {
+    resetSwipeHintSeen().then(showSwipeHint);
+  }
   useEffect(() => {
     let cancelled = false;
     AccessibilityInfo.isReduceMotionEnabled?.().then(setReducedMotion).catch(() => {});
@@ -251,10 +262,7 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
         swipeTimerRef.current = setTimeout(() => {
           if (swipeSuppressedRef.current) return;
           if (sheetRef.current || feedStateRef.current !== "default") return;
-          swipeShownRef.current = true;
-          setSwipeHintVisible(true);
-          const done = reducedMotion ? 2600 : 1800 * 3 + 250;
-          swipeCapRef.current = setTimeout(() => teardownSwipeHint(), done);
+          showSwipeHint();
         }, 1500);
       });
     return () => {
@@ -321,21 +329,15 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
               ))}
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-              {/* PLACEMENT MOCKUP ONLY — not wired to a real debug menu yet,
-                  just here so the trigger's position/size/tappability can be
-                  judged against the live nav row before building the menu
-                  behind it. Docked into this row (not an absolute overlay)
-                  so it inherits correct alignment on every platform instead
-                  of risking collision with OS/simulated status-bar chrome. */}
-              {__DEV__ && (
-                <Pressable
-                  onPress={() => {}}
-                  hitSlop={8}
-                  style={{ width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.35)" }}
-                >
-                  <Icon name="gear-outline" size={16} color="rgba(255,255,255,0.6)" />
-                </Pressable>
-              )}
+              <DevMenu
+                sectionLabel="Feed"
+                entries={[
+                  { label: "Default", description: "The normal, playable feed", onSelect: () => setFeedState("default") },
+                  { label: "Empty", description: "No posts to show", onSelect: () => setFeedState("empty") },
+                  { label: "Error", description: "Feed failed to load", onSelect: () => setFeedState("error") },
+                  { label: "Replay onboarding hint", description: "Force the first-run swipe-up coach-mark to show again", onSelect: debugReplaySwipeHint },
+                ]}
+              />
               <View style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
                 <Icon name="magnifying-glass" size={24} color="white" />
               </View>
@@ -396,15 +398,11 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
         </View>
       )}
 
-      {snack && (
+      {snack ? (
         <View style={{ position: "absolute", left: 16, right: 16, bottom: 112, zIndex: 40 }}>
           <Snackbar message={snack} />
         </View>
-      )}
-
-      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 30 }}>
-        <TabBar active={tab} onChange={setTab} labels={{ feed: "Watch", earn: "Balance" }} bottomInset={insets.bottom} />
-      </View>
+      ) : null}
 
       {/* Donate confirm sheet — amount already chosen via the chip that opened it; this is confirm-only */}
       <BottomSheet

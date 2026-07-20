@@ -38,11 +38,11 @@ export function Snackbar({ message, icon, background = "conditionSuccess", actio
       >
         {icon}
         <Text style={[typography.bodyBasicRegular, { color: "white", flex: 1 }]}>{message}</Text>
-        {actionLabel && (
+        {actionLabel ? (
           <Pressable onPress={onAction}>
             <Text style={[typography.bodyBasicBold, { color: "white" }]}>{actionLabel}</Text>
           </Pressable>
-        )}
+        ) : null}
       </LinearGradient>
     </View>
   );

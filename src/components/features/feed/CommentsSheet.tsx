@@ -258,7 +258,7 @@ export function CommentsSheet({ open, postKey, onClose }: { open: boolean; postK
           )}
         />
 
-        {flash && (
+        {flash ? (
           <View
             style={{
               position: "absolute",
@@ -277,7 +277,7 @@ export function CommentsSheet({ open, postKey, onClose }: { open: boolean; postK
           >
             <Text style={{ color: "white", fontSize: 13, fontFamily: "Montserrat" }}>{flash}</Text>
           </View>
-        )}
+        ) : null}
 
         <View style={{ backgroundColor: "rgb(8,10,11)" }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10, borderTopWidth: 1, borderBottomWidth: 1, borderColor: "rgba(255,255,255,0.10)" }}>
@@ -288,7 +288,7 @@ export function CommentsSheet({ open, postKey, onClose }: { open: boolean; postK
             ))}
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 12 }}>
-            {editId && <Text style={{ color: ACCENT_ORANGE_START, fontSize: 12, fontWeight: "600", fontFamily: "Montserrat" }}>Editing</Text>}
+            {editId ? <Text style={{ color: ACCENT_ORANGE_START, fontSize: 12, fontWeight: "600", fontFamily: "Montserrat" }}>Editing</Text> : null}
             <TextInput
               ref={inputRef}
               value={text}
