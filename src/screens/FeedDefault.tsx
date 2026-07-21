@@ -13,6 +13,7 @@ import { BottomSheet } from "@/components/patterns/bottom-sheet/BottomSheet";
 import { Snackbar } from "@/components/patterns/snack/Snackbar";
 import { StatusPanel } from "@/components/patterns/status-panel/StatusPanel";
 import { Cell } from "@/components/patterns/cell/Cell";
+import { soon } from "@/lib/soon";
 import { LiveBadge } from "@/components/features/feed/LiveBadge";
 import { DonationChip } from "@/components/features/feed/DonationChip";
 import { FeedLeftEarn } from "@/components/features/feed/FeedLeftEarn";
@@ -216,7 +217,7 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
     { icon: "crossed-circle", label: "Not interested", color: "#ffffff", onClick: () => { setSheet(null); flash("We'll show fewer like this"); } },
     { icon: "exclamation-bubble-outline", label: "Report", color: "#ffffff", onClick: () => { setSheet(null); flash("Report submitted"); } },
     { icon: "human-outline", label: "Block", color: "#ffffff", onClick: () => { setSheet(null); flash("User blocked"); } },
-    { icon: "heart-outline", label: "Liked by", color: "#ffffff", onClick: () => { setSheet(null); flash("42 people liked this"); } },
+    { icon: "heart-outline", label: "Liked by", color: "#ffffff", onClick: () => { setSheet(null); soon("Liked by", "liked-by"); } },
   ];
 
   // ---- First-run swipe-up coach-mark (FeedSwipeHint host wiring) ----
@@ -382,7 +383,7 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
                 commentCount={formatCount(active.commentCount)}
                 onComment={() => setSheet({ type: "comments", index: currentIndex })}
                 shareCount={formatCount(active.shareCount)}
-                onShare={() => flash("Link copied to clipboard")}
+                onShare={() => soon("Share", "share-sheet")}
                 onMore={() => setSheet({ type: "more", index: currentIndex })}
                 musicCoverSrc={active.musicCover}
               />

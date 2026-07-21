@@ -10,6 +10,7 @@ import { BottomSheet } from "@/components/patterns/bottom-sheet/BottomSheet";
 import { Snackbar } from "@/components/patterns/snack/Snackbar";
 import { StatusBar } from "@/components/patterns/status-bar/StatusBar";
 import { typography } from "@/design/theme";
+import { soon } from "@/lib/soon";
 
 /*
   Ported from PulseeCreate.dc.html's video/photo creation flow: Record ->
@@ -190,10 +191,10 @@ export default function CreateDefault() {
             <View style={{ flexDirection: "row", gap: 10 }}>
               {([
                 { icon: "note-fill" as const, label: "Music", onPress: () => setMusicOpen(true) },
-                { icon: "pencil-outline" as const, label: "Text", onPress: () => flash("Editor tools aren't wired up yet") },
-                { icon: "square-on-square-outline" as const, label: "Overlay", onPress: () => flash("Editor tools aren't wired up yet") },
-                { icon: "mixer-outline" as const, label: "Filter", onPress: () => flash("Editor tools aren't wired up yet") },
-                { icon: "pencil-fill" as const, label: "Edit", onPress: () => flash("Editor tools aren't wired up yet") },
+                { icon: "pencil-outline" as const, label: "Text", onPress: () => soon("Text tool", "video-editor-tools") },
+                { icon: "square-on-square-outline" as const, label: "Overlay", onPress: () => soon("Overlay tool", "video-editor-tools") },
+                { icon: "mixer-outline" as const, label: "Filter", onPress: () => soon("Filter tool", "video-editor-tools") },
+                { icon: "pencil-fill" as const, label: "Edit", onPress: () => soon("Edit tool", "video-editor-tools") },
               ]).map((b) => (
                 <Pressable key={b.label} onPress={b.onPress} style={{ flex: 1, height: 56, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.05)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center", gap: 2 }}>
                   <Icon name={b.icon} size={20} color="white" />

@@ -9,6 +9,7 @@ import { BottomSheet } from "@/components/patterns/bottom-sheet/BottomSheet";
 import { StatusBar } from "@/components/patterns/status-bar/StatusBar";
 import { Snackbar } from "@/components/patterns/snack/Snackbar";
 import { DevMenu } from "@/screens/dev/DevMenu";
+import { soon } from "@/lib/soon";
 import { typography } from "@/design/theme";
 
 /*
@@ -37,12 +38,21 @@ const VIDEOS = [
   { img: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=400&q=80", views: "3.4M", boosted: false, stack: true, music: true },
 ];
 
-const HOTS: { icon: "chat-2-fill" | "list-fill" | "heart-fill" | "hearts" | "wallet-fill"; label: string }[] = [
-  { icon: "chat-2-fill", label: "Chats" },
-  { icon: "list-fill", label: "My tasks" },
-  { icon: "heart-fill", label: "Activity" },
-  { icon: "hearts", label: "Dating" },
-  { icon: "wallet-fill", label: "Wallet" },
+const SMALL_BANNERS: { title: string; sub: string }[] = [
+  { title: "How to Earn", sub: "A detailed guide" },
+  { title: "Exchange", sub: "See for Wave" },
+  { title: "Up to $15", sub: "per friend" },
+  { title: "Rewards", sub: "for tasks" },
+  { title: "Free", sub: "video promotion" },
+  { title: "Withdraw", sub: "to a card or wallet" },
+];
+
+const HOTS: { icon: "chat-2-fill" | "list-fill" | "heart-fill" | "hearts" | "wallet-fill"; label: string; targetFlow: string }[] = [
+  { icon: "chat-2-fill", label: "Chats", targetFlow: "chats" },
+  { icon: "list-fill", label: "My tasks", targetFlow: "tasks" },
+  { icon: "heart-fill", label: "Activity", targetFlow: "activity" },
+  { icon: "hearts", label: "Dating", targetFlow: "dating" },
+  { icon: "wallet-fill", label: "Wallet", targetFlow: "wallet" },
 ];
 
 export default function ProfileDefault() {
@@ -81,11 +91,11 @@ export default function ProfileDefault() {
             <View />
           )}
           <View style={{ flexDirection: "row", gap: 10 }}>
-            <Pressable style={{ width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.15)" }}>
+            <Pressable onPress={() => soon("Wallet", "wallet")} style={{ width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.15)" }}>
               <Icon name="arrowshape-right-dollar-outline" size={20} color="white" />
             </Pressable>
             <Pressable
-              onPress={() => { if (!isMine) setMoreSheet(true); }}
+              onPress={() => { if (!isMine) setMoreSheet(true); else soon("Settings", "settings"); }}
               style={{ width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.15)" }}
             >
               <Icon name="horizontal-3-lines" size={14} color="white" />
@@ -159,7 +169,7 @@ export default function ProfileDefault() {
 
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 4, paddingHorizontal: 20, paddingTop: 10 }}>
                 {HOTS.map((h) => (
-                  <Pressable key={h.label} style={{ width: 77, height: 64, borderRadius: 24, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                  <Pressable key={h.label} onPress={() => soon(h.label, h.targetFlow)} style={{ width: 77, height: 64, borderRadius: 24, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center", gap: 2 }}>
                     <Icon name={h.icon} size={22} color="white" />
                     <Text style={[typography.captionRegular, { color: "white" }]}>{h.label}</Text>
                   </Pressable>
@@ -172,10 +182,19 @@ export default function ProfileDefault() {
                 </Pressable>
               </View>
 
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingTop: 10 }}>
+                {SMALL_BANNERS.map((b) => (
+                  <Pressable key={b.title} onPress={() => soon("Open " + b.title, "banner-" + b.title.toLowerCase().replace(/\s+/g, "-"))} style={{ width: 150, height: 82, borderRadius: 24, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.10)", padding: 16, justifyContent: "flex-start" }}>
+                    <Text style={{ color: "white", fontFamily: "Montserrat", fontWeight: "700", fontSize: 16, lineHeight: 20 }}>{b.title}</Text>
+                    <Text style={{ color: "rgba(255,255,255,0.85)", fontFamily: "Montserrat", fontWeight: "500", fontSize: 13, lineHeight: 16 }}>{b.sub}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+
               {showGrid ? (
                 <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 10 }}>
                   {VIDEOS.map((v, i) => (
-                    <Pressable key={i} style={{ width: "33.3%", aspectRatio: 2 / 3, padding: 0.75 }}>
+                    <Pressable key={i} onPress={() => (v.boosted ? soon("Make video viral", "video-boost-editing") : soon("Play video", "video-player"))} style={{ width: "33.3%", aspectRatio: 2 / 3, padding: 0.75 }}>
                       <View style={{ flex: 1, borderRadius: 8, overflow: "hidden", backgroundColor: "#101314" }}>
                         <Image source={{ uri: v.img }} style={{ width: "100%", height: "100%" }} />
                         {v.boosted ? (
@@ -211,7 +230,7 @@ export default function ProfileDefault() {
                   </View>
                   <Text style={[typography.title, { color: "white", textAlign: "center" }]}>Upload your first video and get promotion</Text>
                   <View style={{ width: "100%" }}>
-                    <Button variant="primary" tone="level1" size="l" onPress={() => flash("Camera not available in this build yet")}>
+                    <Button variant="primary" tone="level1" size="l" onPress={() => flash("Camera isn't available yet")}>
                       Upload video
                     </Button>
                   </View>
@@ -238,7 +257,7 @@ export default function ProfileDefault() {
                     </Text>
                   </Pressable>
                   <Pressable
-                    onPress={() => flash("Messaging isn't wired up yet")}
+                    onPress={() => soon("Message", "messages")}
                     style={{ flex: 1, height: 40, borderRadius: 100, alignItems: "center", justifyContent: "center", backgroundColor: following ? "white" : "rgba(255,255,255,0.15)" }}
                   >
                     <Text style={{ color: following ? "#080A0B" : "#FD4B03", fontFamily: "Montserrat", fontWeight: "700", fontSize: 12, letterSpacing: 0.72, textTransform: "uppercase" }}>Message</Text>
@@ -263,7 +282,7 @@ export default function ProfileDefault() {
               ) : (
                 <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 10 }}>
                   {VIDEOS.map((v, i) => (
-                    <Pressable key={i} style={{ width: "33.3%", aspectRatio: 2 / 3, padding: 0.75 }}>
+                    <Pressable key={i} onPress={() => { if (otherMode !== "blocked") soon("Play video", "video-player"); }} style={{ width: "33.3%", aspectRatio: 2 / 3, padding: 0.75 }}>
                       <View style={{ flex: 1, borderRadius: 8, overflow: "hidden", backgroundColor: otherMode === "blocked" ? "#212323" : "#101314" }}>
                         {otherMode !== "blocked" && <Image source={{ uri: v.img }} style={{ width: "100%", height: "100%" }} />}
                         <View style={{ position: "absolute", left: 4, bottom: 6, flexDirection: "row", alignItems: "center", gap: 4 }}>
@@ -303,7 +322,7 @@ export default function ProfileDefault() {
         <View style={{ paddingHorizontal: 8, paddingBottom: 8 }}>
           <Cell leftSlot={<Icon name="exclamation-bubble-outline" size={24} color="white" />} label="Report" onPress={() => { setMoreSheet(false); flash("Report submitted"); }} />
           <Cell leftSlot={<Icon name="cross-circle-outline" size={24} color="white" />} label="Block" onPress={() => { setMoreSheet(false); setOtherMode("blocked"); flash("User blocked"); }} />
-          <Cell leftSlot={<Icon name="arrowshape-right-outline" size={24} color="white" />} label="Share profile" onPress={() => { setMoreSheet(false); flash("Share isn't wired up yet"); }} />
+          <Cell leftSlot={<Icon name="arrowshape-right-outline" size={24} color="white" />} label="Share profile" onPress={() => { setMoreSheet(false); soon("Share profile", "share-sheet"); }} />
         </View>
       </BottomSheet>
 
