@@ -1,0 +1,36 @@
+// Ported verbatim from the design handoff's signup-countries.js — real
+// country dial codes, directly portable data.
+export type Country = { iso: string; name: string; code: string };
+
+export const SIGNUP_COUNTRIES: Country[] = [
+  { iso: "US", name: "United States", code: "+1" },
+  { iso: "GB", name: "United Kingdom", code: "+44" },
+  { iso: "CA", name: "Canada", code: "+1" },
+  { iso: "AU", name: "Australia", code: "+61" },
+  { iso: "DE", name: "Germany", code: "+49" },
+  { iso: "FR", name: "France", code: "+33" },
+  { iso: "ES", name: "Spain", code: "+34" },
+  { iso: "IT", name: "Italy", code: "+39" },
+  { iso: "NL", name: "Netherlands", code: "+31" },
+  { iso: "SE", name: "Sweden", code: "+46" },
+  { iso: "PL", name: "Poland", code: "+48" },
+  { iso: "UA", name: "Ukraine", code: "+380" },
+  { iso: "TR", name: "Turkey", code: "+90" },
+  { iso: "AE", name: "United Arab Emirates", code: "+971" },
+  { iso: "SA", name: "Saudi Arabia", code: "+966" },
+  { iso: "EG", name: "Egypt", code: "+20" },
+  { iso: "NG", name: "Nigeria", code: "+234" },
+  { iso: "ZA", name: "South Africa", code: "+27" },
+  { iso: "BR", name: "Brazil", code: "+55" },
+  { iso: "MX", name: "Mexico", code: "+52" },
+  { iso: "AR", name: "Argentina", code: "+54" },
+  { iso: "IN", name: "India", code: "+91" },
+  { iso: "CN", name: "China", code: "+86" },
+  { iso: "JP", name: "Japan", code: "+81" },
+  { iso: "KR", name: "South Korea", code: "+82" },
+  { iso: "ID", name: "Indonesia", code: "+62" },
+  { iso: "PH", name: "Philippines", code: "+63" },
+  { iso: "VN", name: "Vietnam", code: "+84" },
+  { iso: "TH", name: "Thailand", code: "+66" },
+  { iso: "SG", name: "Singapore", code: "+65" },
+];

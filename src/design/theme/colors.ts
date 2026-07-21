@@ -97,4 +97,19 @@ export const colors = {
     // paired with this fill).
     bgSolid5: "rgba(255, 255, 255, 0.05)",
   },
+  // White-opacity scale from the Pulsee handoff README ("Surface fills" /
+  // "Strokes") — cards, chips, inputs, control tracks, hairlines. Named
+  // by opacity percentage, matching the source's own --surface-fill-N /
+  // implicit stroke-opacity naming so a value here maps 1:1 back to spec.
+  surfaceFill: {
+    5: "rgba(255, 255, 255, 0.05)",
+    10: "rgba(255, 255, 255, 0.10)",
+    15: "rgba(255, 255, 255, 0.15)",
+    20: "rgba(255, 255, 255, 0.20)",
+  },
+  strokeWhite: {
+    5: "rgba(255, 255, 255, 0.05)",
+    15: "rgba(255, 255, 255, 0.15)",
+    70: "rgba(255, 255, 255, 0.70)",
+  },
 } as const;
