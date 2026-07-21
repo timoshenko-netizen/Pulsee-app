@@ -41,6 +41,31 @@ const MUSIC_TRACKS = [
   { name: "Dusk", artist: "Bonobo" },
 ];
 
+const COVER_FRAME_COUNT = 7;
+const COVER_FRAME_FRACS = Array.from({ length: COVER_FRAME_COUNT }, (_, i) => (i + 0.5) / COVER_FRAME_COUNT);
+
+function seekPlayerTo(player: ReturnType<typeof useVideoPlayer>, frac: number, duration: number | undefined) {
+  if (duration) {
+    player.currentTime = Math.min(duration - 0.05, Math.max(0.01, frac * duration));
+  }
+  player.pause();
+}
+
+/** A paused VideoView frozen at a fixed fraction of the clip's duration — used for the cover-picker filmstrip. */
+function useCoverFramePlayer(frac: number) {
+  const player = useVideoPlayer(PLACEHOLDER_CLIP, (p) => {
+    p.muted = true;
+  });
+  useEffect(() => {
+    const sub = player.addListener("sourceLoad", (payload: { duration?: number }) => {
+      seekPlayerTo(player, frac, payload?.duration ?? player.duration);
+    });
+    if (player.duration) seekPlayerTo(player, frac, player.duration);
+    return () => sub.remove();
+  }, [player, frac]);
+  return player;
+}
+
 export default function CreateDefault() {
   const insets = useSafeAreaInsets();
   const { mode: modeParam } = useLocalSearchParams<{ mode?: string }>();
@@ -73,6 +98,34 @@ export default function CreateDefault() {
     p.loop = true;
     p.muted = true;
   });
+
+  const coverFramePlayers = [
+    useCoverFramePlayer(COVER_FRAME_FRACS[0]),
+    useCoverFramePlayer(COVER_FRAME_FRACS[1]),
+    useCoverFramePlayer(COVER_FRAME_FRACS[2]),
+    useCoverFramePlayer(COVER_FRAME_FRACS[3]),
+    useCoverFramePlayer(COVER_FRAME_FRACS[4]),
+    useCoverFramePlayer(COVER_FRAME_FRACS[5]),
+    useCoverFramePlayer(COVER_FRAME_FRACS[6]),
+  ];
+  const coverMainPlayer = useVideoPlayer(PLACEHOLDER_CLIP, (p) => {
+    p.muted = true;
+  });
+
+  useEffect(() => {
+    const frac = COVER_FRAME_FRACS[coverIndex];
+    const sub = coverMainPlayer.addListener("sourceLoad", (payload: { duration?: number }) => {
+      seekPlayerTo(coverMainPlayer, frac, payload?.duration ?? coverMainPlayer.duration);
+    });
+    if (coverMainPlayer.duration) seekPlayerTo(coverMainPlayer, frac, coverMainPlayer.duration);
+    return () => sub.remove();
+  }, [coverIndex, coverMainPlayer]);
+
+  useEffect(() => {
+    if (!capturedUri || capturedIsPhoto) return;
+    coverMainPlayer.replaceAsync(capturedUri);
+    coverFramePlayers.forEach((p) => p.replaceAsync(capturedUri));
+  }, [capturedUri, capturedIsPhoto]);
 
   async function requestPermissions() {
     await requestCameraPermission();
@@ -131,7 +184,7 @@ export default function CreateDefault() {
   }
 
   useEffect(() => {
-    if (step === "recording" || step === "edit" || step === "cover" || step === "describe") {
+    if (step === "recording" || step === "edit" || step === "describe") {
       player.play();
     } else {
       player.pause();
@@ -323,15 +376,15 @@ export default function CreateDefault() {
           </View>
 
           <View style={{ flex: 1, backgroundColor: "#111" }}>
-            <VideoView player={player} style={{ flex: 1 }} contentFit="cover" nativeControls={false} />
+            <VideoView player={coverMainPlayer} style={{ flex: 1 }} contentFit="cover" nativeControls={false} />
           </View>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 2, paddingHorizontal: 16, paddingVertical: 16 }}>
-            {Array.from({ length: 7 }).map((_, i) => {
+            {coverFramePlayers.map((framePlayer, i) => {
               const selected = i === coverIndex;
               return (
                 <Pressable key={i} onPress={() => setCoverIndex(i)} style={{ width: 48, height: selected ? 70 : 58, borderRadius: selected ? 8 : 0, overflow: "hidden", borderWidth: selected ? 2 : 0, borderColor: "#31F1F0" }}>
-                  <VideoView player={player} style={{ flex: 1 }} contentFit="cover" nativeControls={false} />
+                  <VideoView player={framePlayer} style={{ flex: 1 }} contentFit="cover" nativeControls={false} />
                 </Pressable>
               );
             })}
@@ -359,7 +412,7 @@ export default function CreateDefault() {
               {capturedIsPhoto && capturedUri ? (
                 <Image source={{ uri: capturedUri }} resizeMode="cover" style={{ flex: 1 }} />
               ) : (
-                <VideoView player={player} style={{ flex: 1 }} contentFit="cover" nativeControls={false} />
+                <VideoView player={coverMainPlayer} style={{ flex: 1 }} contentFit="cover" nativeControls={false} />
               )}
             </View>
             <View style={{ flex: 1, gap: 8 }}>
