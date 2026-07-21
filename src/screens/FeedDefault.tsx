@@ -22,6 +22,8 @@ import { FeedUsername } from "@/components/features/feed/FeedUsername";
 import { FeedRightBar } from "@/components/features/feed/FeedRightBar";
 import { CommentsSheet } from "@/components/features/feed/CommentsSheet";
 import { FeedSwipeHint } from "@/components/features/feed/FeedSwipeHint";
+import { CoinBalanceTooltip } from "@/components/features/feed/CoinBalanceTooltip";
+import { RewardScreen } from "@/components/features/feed/RewardScreen";
 import type { IconName } from "@/design/icons/Icon";
 import { typography } from "@/design/theme";
 import { DevMenu } from "@/screens/dev/DevMenu";
@@ -162,6 +164,8 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeFeedTab, setActiveFeedTab] = useState("For you");
   const [sheet, setSheet] = useState<Sheet>(null);
+  const [tipOpen, setTipOpen] = useState(false);
+  const [rewardState, setRewardState] = useState<"off" | "signedIn" | "signedOut">("off");
   const [snack, setSnack] = useState<string | null>(null);
   const [feedState, setFeedState] = useState<FeedState>(initialFeedState);
   const [swipeHintVisible, setSwipeHintVisible] = useState(false);
@@ -336,6 +340,8 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
                   { label: "Empty", description: "No posts to show", onSelect: () => setFeedState("empty") },
                   { label: "Error", description: "Feed failed to load", onSelect: () => setFeedState("error") },
                   { label: "Replay onboarding hint", description: "Force the first-run swipe-up coach-mark to show again", onSelect: debugReplaySwipeHint },
+                  { label: "Reward (signed in)", description: "Claim screen for an already-authenticated user", onSelect: () => setRewardState("signedIn") },
+                  { label: "Reward (signed out)", description: "Claim screen prompting sign-up", onSelect: () => setRewardState("signedOut") },
                 ]}
               />
               <View style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}>
@@ -345,7 +351,9 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
           </View>
           {feedState === "default" && (
             <View style={{ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10 }}>
-              <FeedLeftEarn />
+              <Pressable onPress={() => setTipOpen(true)}>
+                <FeedLeftEarn />
+              </Pressable>
               <FeedWtf />
             </View>
           )}
@@ -451,6 +459,17 @@ export default function FeedDefault({ initialFeedState = "default" }: FeedDefaul
           ))}
         </View>
       </BottomSheet>
+
+      {tipOpen ? (
+        <CoinBalanceTooltip
+          onClose={() => setTipOpen(false)}
+          onSignUp={() => { setTipOpen(false); setRewardState("signedOut"); }}
+        />
+      ) : null}
+
+      {rewardState !== "off" ? (
+        <RewardScreen signedIn={rewardState === "signedIn"} onClose={() => setRewardState("off")} />
+      ) : null}
     </View>
   );
 }
