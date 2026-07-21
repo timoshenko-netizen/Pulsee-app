@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Modal, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon } from "@/design/icons/Icon";
@@ -63,8 +63,13 @@ export default function EditProfile() {
         </View>
 
         <View style={{ alignItems: "center", paddingVertical: 8 }}>
-          <Pressable onPress={() => setPhotoSheet(true)} style={{ width: 72, height: 72, borderRadius: 36, overflow: "hidden", backgroundColor: "#212323", alignItems: "center", justifyContent: "center" }}>
-            <Icon name="camera-outline" size={32} color="white" />
+          <Pressable onPress={() => setPhotoSheet(true)} style={{ width: 72, height: 72, borderRadius: 36, overflow: "hidden", backgroundColor: "#212323" }}>
+            <Image source={{ uri: "https://i.pravatar.cc/240?img=5" }} style={{ width: "100%", height: "100%" }} />
+            <View style={{ position: "absolute", right: 0, bottom: 0, width: 26, height: 26, borderRadius: 13, backgroundColor: "#080A0B", borderWidth: 2, borderColor: "#080A0B", alignItems: "center", justifyContent: "center" }}>
+              <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+                <Icon name="camera-outline" size={14} color="white" />
+              </View>
+            </View>
           </Pressable>
         </View>
 

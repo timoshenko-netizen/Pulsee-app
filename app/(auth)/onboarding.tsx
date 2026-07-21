@@ -2,23 +2,57 @@ import { View, Text } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { Icon } from "@/design/icons/Icon";
 import { Button } from "@/components/primitives/button/Button";
 import { typography } from "@/design/theme";
 
 /*
   Ported from PulseeSignup.dc.html's onboarding screen (first launch).
-  The hero background is a looping video (assets/signup/plitki.mp4,
-  poster plitki.png) — neither file shipped with the handoff bundle, so
-  this uses a dark gradient placeholder instead (see
-  src/screens/auth/assets/README.md).
+  The source's hero is a single looping video (assets/signup/plitki.mp4,
+  "plitki" = "tiles"), which never shipped with the handoff bundle (see
+  src/screens/auth/assets/README.md). Recreated as a real tiled-video
+  mosaic using the project's own existing sample clips instead of a
+  fabricated stand-in — muted/looping, same idea as the source's tiled
+  background.
 */
+const HERO_CLIPS = [
+  require("../../assets/videos/16183412_720_1280_30fps.mp4"),
+  require("../../assets/videos/15980421-hd_720_1280_30fps.mp4"),
+  require("../../assets/videos/8347677-sd_506_960_30fps.mp4"),
+];
+
 export default function Onboarding() {
   const insets = useSafeAreaInsets();
+  const tile0 = useVideoPlayer(HERO_CLIPS[0], (p) => { p.loop = true; p.muted = true; p.play(); });
+  const tile1 = useVideoPlayer(HERO_CLIPS[1], (p) => { p.loop = true; p.muted = true; p.play(); });
+  const tile2 = useVideoPlayer(HERO_CLIPS[2], (p) => { p.loop = true; p.muted = true; p.play(); });
+  const tile3 = useVideoPlayer(HERO_CLIPS[0], (p) => { p.loop = true; p.muted = true; p.play(); });
+  const tile4 = useVideoPlayer(HERO_CLIPS[1], (p) => { p.loop = true; p.muted = true; p.play(); });
+  const tile5 = useVideoPlayer(HERO_CLIPS[2], (p) => { p.loop = true; p.muted = true; p.play(); });
+  const tileRows = [
+    [tile0, tile1],
+    [tile2, tile3],
+    [tile4, tile5],
+  ];
   return (
     <View style={{ flex: 1, backgroundColor: "#080A0B" }}>
       <View style={{ flex: 1 }}>
-        <LinearGradient colors={["#2a2320", "#080A0B"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={{ flex: 1 }} />
+        <View style={{ flex: 1 }}>
+          {tileRows.map((row, i) => (
+            <View key={i} style={{ flexDirection: "row", height: "33.334%" }}>
+              {row.map((p, j) => (
+                <VideoView key={j} player={p} style={{ width: "50%", height: "100%" }} contentFit="cover" nativeControls={false} />
+              ))}
+            </View>
+          ))}
+        </View>
+        <LinearGradient
+          colors={["rgba(8,10,11,0.55)", "rgba(8,10,11,0.15)"]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={{ position: "absolute", left: 0, top: 0, right: 0, height: "55%" }}
+        />
         <LinearGradient
           colors={["rgba(8,10,11,0)", "#080A0B"]}
           start={{ x: 0, y: 0 }}

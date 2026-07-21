@@ -47,6 +47,12 @@ const SMALL_BANNERS: { title: string; sub: string }[] = [
   { title: "Withdraw", sub: "to a card or wallet" },
 ];
 
+const ACHIEVEMENTS: { icon: "eye-fill" | "star-fill" | "triangle-fill"; label: string; tint: string }[] = [
+  { icon: "eye-fill", label: "Received views", tint: "#C0C0C0" },
+  { icon: "star-fill", label: "VIP", tint: "#D4AF37" },
+  { icon: "triangle-fill", label: "Watched videos", tint: "#D4AF37" },
+];
+
 const HOTS: { icon: "chat-2-fill" | "list-fill" | "heart-fill" | "hearts" | "wallet-fill"; label: string; targetFlow: string }[] = [
   { icon: "chat-2-fill", label: "Chats", targetFlow: "chats" },
   { icon: "list-fill", label: "My tasks", targetFlow: "tasks" },
@@ -123,6 +129,16 @@ export default function ProfileDefault() {
             <Text style={[typography.bodyBasicRegular, { color: "white" }]}>{isMine ? "@Konstantin.dzu" : "@marcus.vale"}</Text>
           </View>
         </View>
+
+        {showGrid ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 20, paddingTop: 8 }}>
+            {ACHIEVEMENTS.map((a) => (
+              <View key={a.label} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}>
+                <Icon name={a.icon} size={20} color={a.tint} />
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 20, paddingTop: 6 }}>
           <Text style={[typography.bodyBasicRegular, { color: "rgb(185,185,185)" }]}>
