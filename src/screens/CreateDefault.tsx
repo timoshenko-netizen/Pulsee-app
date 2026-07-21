@@ -3,6 +3,7 @@ import { Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } 
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "@/design/icons/Icon";
@@ -23,9 +24,8 @@ import { soon } from "@/lib/soon";
   placeholder. The placeholder clip is only ever used as the initial
   useVideoPlayer source before a real recording exists; the player is
   swapped to the actual captured file via player.replaceAsync() as soon
-  as recording stops. Gallery upload (the small icon on Record) is a
-  separate capability (expo-image-picker) not installed yet, so it
-  stays a soon() stub rather than being silently faked.
+  as recording stops. Gallery upload (the small icon on Record) is real
+  too, via expo-image-picker's launchImageLibraryAsync.
 */
 const PLACEHOLDER_CLIP = require("../../assets/videos/16183412_720_1280_30fps.mp4");
 const DESC_MAX = 150;
@@ -110,6 +110,24 @@ export default function CreateDefault() {
     } catch {
       setStep("record");
     }
+  }
+
+  async function pickFromGallery() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      flash("Allow photo library access to upload");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: photoMode ? ["images"] : ["videos"],
+      quality: 1,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+    setCapturedUri(asset.uri);
+    setCapturedIsPhoto(photoMode);
+    if (!photoMode) await player.replaceAsync(asset.uri);
+    setStep("edit");
   }
 
   useEffect(() => {
@@ -214,7 +232,7 @@ export default function CreateDefault() {
             {photoMode ? (
               <View style={{ flex: 1 }} />
             ) : (
-              <Pressable onPress={() => soon("Upload from gallery", "camera-capture")} style={{ width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.15)" }}>
+              <Pressable onPress={pickFromGallery} style={{ width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.15)" }}>
                 <Icon name="gallery" size={24} color="white" />
               </Pressable>
             )}

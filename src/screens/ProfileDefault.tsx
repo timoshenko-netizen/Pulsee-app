@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Image, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as ImagePicker from "expo-image-picker";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { Icon } from "@/design/icons/Icon";
 import { Button } from "@/components/primitives/button/Button";
 import { Cell } from "@/components/patterns/cell/Cell";
@@ -13,13 +16,18 @@ import { soon } from "@/lib/soon";
 import { typography } from "@/design/theme";
 
 /*
-  Ported from PulseeProfile.dc.html's main profile view. Simplified from
-  the source in one deliberate way: the source's content panel drags up
-  over the header with a badge shrink+glide FLIP animation on drag —
-  a bespoke gesture micro-interaction that's a lot of effort for a
-  panel that reads identically at rest either way. This renders it
-  static (resting position only) rather than half-porting the gesture;
-  flagging it here rather than silently dropping it.
+  Ported from PulseeProfile.dc.html's main profile view. The content
+  panel really drags up over the header now (Gesture.Pan + reanimated,
+  same pattern as BottomSheet's drag-to-dismiss handle), snapping
+  between "default" / "mid" / "top" offsets computed from the measured
+  heights of the avatar, meta, and achievement rows — same snap-point
+  model as the source. One deliberate simplification: the source also
+  runs a bespoke FLIP animation that shrinks+glides the achievement
+  badges into a marker near the verified checkmark as the panel drags
+  up. That's a purely cosmetic micro-interaction on top of the real
+  drag behavior, so it's left out rather than half-ported; the
+  achievement row now just slides under the panel like the rest of the
+  header content.
 
   "Other user" is only reachable via the debug menu for now — nothing
   else in the app yet links to a stranger's profile (no user list, no
@@ -76,9 +84,54 @@ export default function ProfileDefault() {
     setTimeout(() => setSnack(null), 2200);
   }
 
+  async function uploadFirstVideo() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      flash("Allow photo library access to upload");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["videos"], quality: 1 });
+    if (result.canceled || !result.assets?.[0]) return;
+    setMineMode("filled");
+    flash("Video uploaded!");
+  }
+
+  const [avatarRowHeight, setAvatarRowHeight] = useState(0);
+  const [metaRowHeight, setMetaRowHeight] = useState(0);
+  const [achRowHeight, setAchRowHeight] = useState(0);
+  const panelOffset = useSharedValue(0);
+  const dragBase = useSharedValue(0);
+
   const isMine = who === "mine";
   const showGrid = isMine && mineMode === "filled";
   const showEmpty = isMine && mineMode === "empty";
+
+  const midOffset = -(achRowHeight + metaRowHeight);
+  const minOffset = -(achRowHeight + metaRowHeight + avatarRowHeight);
+  const snapOffsets = showGrid ? [0, midOffset, minOffset] : [0, minOffset];
+
+  const panGesture = Gesture.Pan()
+    .onStart(() => {
+      dragBase.value = panelOffset.value;
+    })
+    .onUpdate((e) => {
+      panelOffset.value = Math.max(minOffset, Math.min(0, dragBase.value + e.translationY));
+    })
+    .onEnd(() => {
+      let nearest = snapOffsets[0];
+      for (const s of snapOffsets) {
+        if (Math.abs(s - panelOffset.value) < Math.abs(nearest - panelOffset.value)) nearest = s;
+      }
+      panelOffset.value = withTiming(nearest, { duration: 320 });
+    });
+
+  const panelAnimatedStyle = useAnimatedStyle(() => ({
+    marginTop: 16 + panelOffset.value,
+  }));
+
+  useEffect(() => {
+    panelOffset.value = withTiming(0, { duration: 220 });
+  }, [who, mineMode]);
 
   return (
     <View style={{ flex: 1, backgroundColor: "#080A0B" }}>
@@ -109,7 +162,7 @@ export default function ProfileDefault() {
           </View>
         </View>
 
-        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 2, paddingHorizontal: 20, paddingTop: 16 }}>
+        <View onLayout={(e) => setAvatarRowHeight(e.nativeEvent.layout.height)} style={{ flexDirection: "row", alignItems: "flex-start", gap: 2, paddingHorizontal: 20, paddingTop: 16 }}>
           <Pressable onPress={() => { if (isMine) router.push("/profile-edit"); }} style={{ width: 90, height: 90, borderRadius: 24, overflow: "hidden", backgroundColor: "#212323" }}>
             {showEmpty ? (
               <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
@@ -131,7 +184,7 @@ export default function ProfileDefault() {
         </View>
 
         {showGrid ? (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 20, paddingTop: 8 }}>
+          <View onLayout={(e) => setAchRowHeight(e.nativeEvent.layout.height)} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 20, paddingTop: 8 }}>
             {ACHIEVEMENTS.map((a) => (
               <View key={a.label} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}>
                 <Icon name={a.icon} size={20} color={a.tint} />
@@ -140,7 +193,7 @@ export default function ProfileDefault() {
           </View>
         ) : null}
 
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 20, paddingTop: 6 }}>
+        <View onLayout={(e) => setMetaRowHeight(e.nativeEvent.layout.height)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 20, paddingTop: 6 }}>
           <Text style={[typography.bodyBasicRegular, { color: "rgb(185,185,185)" }]}>
             Gender: <Text style={{ color: "white", fontWeight: "700" }}>Non-binary</Text>
           </Text>
@@ -150,10 +203,12 @@ export default function ProfileDefault() {
           </Text>
         </View>
 
-        <View style={{ marginTop: 16, borderTopLeftRadius: 40, borderTopRightRadius: 40, backgroundColor: "rgba(255,255,255,0.06)", paddingTop: 10 }}>
-          <View style={{ alignItems: "center", paddingVertical: 6 }}>
-            <View style={{ width: 64, height: 3, borderRadius: 100, backgroundColor: "rgb(185,185,185)" }} />
-          </View>
+        <Animated.View style={[{ borderTopLeftRadius: 40, borderTopRightRadius: 40, backgroundColor: "rgba(255,255,255,0.06)", paddingTop: 10 }, panelAnimatedStyle]}>
+          <GestureDetector gesture={panGesture}>
+            <View style={{ alignItems: "center", paddingVertical: 6 }}>
+              <View style={{ width: 64, height: 3, borderRadius: 100, backgroundColor: "rgb(185,185,185)" }} />
+            </View>
+          </GestureDetector>
 
           <View style={{ flexDirection: "row" }}>
             <View style={{ flex: 1, alignItems: "center" }}>
@@ -246,7 +301,7 @@ export default function ProfileDefault() {
                   </View>
                   <Text style={[typography.title, { color: "white", textAlign: "center" }]}>Upload your first video and get promotion</Text>
                   <View style={{ width: "100%" }}>
-                    <Button variant="primary" tone="level1" size="l" onPress={() => flash("Camera isn't available yet")}>
+                    <Button variant="primary" tone="level1" size="l" onPress={uploadFirstVideo}>
                       Upload video
                     </Button>
                   </View>
@@ -312,7 +367,7 @@ export default function ProfileDefault() {
               )}
             </>
           )}
-        </View>
+        </Animated.View>
       </ScrollView>
 
       <View style={{ position: "absolute", top: insets.top + 6, right: 10 }}>

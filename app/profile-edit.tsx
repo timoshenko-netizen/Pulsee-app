@@ -2,20 +2,19 @@ import { useState } from "react";
 import { Image, Modal, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as ImagePicker from "expo-image-picker";
 import { Icon } from "@/design/icons/Icon";
 import { Button } from "@/components/primitives/button/Button";
 import { BottomSheet } from "@/components/patterns/bottom-sheet/BottomSheet";
 import { StatusBar } from "@/components/patterns/status-bar/StatusBar";
 import { AuthTextInput } from "@/components/features/auth/AuthTextInput";
+import { Snackbar } from "@/components/patterns/snack/Snackbar";
 import { typography } from "@/design/theme";
 
 /*
   Ported from PulseeProfile.dc.html's Edit Profile screen. The photo
-  source menu (Take a photo / Open gallery) opens for real, but neither
-  option can actually pick an image yet — no camera/image-picker package
-  is installed in this project (same gap flagged for the Create flow).
-  Selecting either just flashes that it isn't wired up, rather than
-  silently doing nothing or faking a picked photo.
+  source menu (Take a photo / Open gallery) really picks/captures an
+  image via expo-image-picker and updates the avatar preview.
 */
 const GENDER_OPTIONS = ["Male", "Female", "Other", "Prefer not to say"];
 
@@ -26,15 +25,48 @@ export default function EditProfile() {
   const [bio, setBio] = useState("I'm someone who values ambition");
   const [dob, setDob] = useState("11.11.2001");
   const [gender, setGender] = useState("Male");
+  const [avatarUri, setAvatarUri] = useState("https://i.pravatar.cc/240?img=5");
   const [nameError, setNameError] = useState(false);
   const [userError, setUserError] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [photoSheet, setPhotoSheet] = useState(false);
   const [genderSheet, setGenderSheet] = useState(false);
   const [exitAlert, setExitAlert] = useState(false);
+  const [snack, setSnack] = useState<string | null>(null);
+
+  function flash(msg: string) {
+    setSnack(msg);
+    setTimeout(() => setSnack(null), 2200);
+  }
 
   function markDirty() {
     if (!dirty) setDirty(true);
+  }
+
+  async function takeAvatarPhoto() {
+    setPhotoSheet(false);
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      flash("Allow camera access to take a photo");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 1, allowsEditing: true });
+    if (result.canceled || !result.assets?.[0]) return;
+    setAvatarUri(result.assets[0].uri);
+    markDirty();
+  }
+
+  async function pickAvatarFromLibrary() {
+    setPhotoSheet(false);
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      flash("Allow photo library access to choose a photo");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 1, allowsEditing: true });
+    if (result.canceled || !result.assets?.[0]) return;
+    setAvatarUri(result.assets[0].uri);
+    markDirty();
   }
 
   function save() {
@@ -64,7 +96,7 @@ export default function EditProfile() {
 
         <View style={{ alignItems: "center", paddingVertical: 8 }}>
           <Pressable onPress={() => setPhotoSheet(true)} style={{ width: 72, height: 72, borderRadius: 36, overflow: "hidden", backgroundColor: "#212323" }}>
-            <Image source={{ uri: "https://i.pravatar.cc/240?img=5" }} style={{ width: "100%", height: "100%" }} />
+            <Image source={{ uri: avatarUri }} style={{ width: "100%", height: "100%" }} />
             <View style={{ position: "absolute", right: 0, bottom: 0, width: 26, height: 26, borderRadius: 13, backgroundColor: "#080A0B", borderWidth: 2, borderColor: "#080A0B", alignItems: "center", justifyContent: "center" }}>
               <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
                 <Icon name="camera-outline" size={14} color="white" />
@@ -131,11 +163,11 @@ export default function EditProfile() {
 
       <BottomSheet open={photoSheet} onClose={() => setPhotoSheet(false)} draggable>
         <View style={{ paddingHorizontal: 8, paddingBottom: 8 }}>
-          <Pressable onPress={() => setPhotoSheet(false)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 44, paddingHorizontal: 16 }}>
+          <Pressable onPress={takeAvatarPhoto} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 44, paddingHorizontal: 16 }}>
             <Text style={[typography.bodyBasicRegular, { color: "white" }]}>Take a photo</Text>
             <Icon name="camera-outline" size={24} color="white" />
           </Pressable>
-          <Pressable onPress={() => setPhotoSheet(false)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 44, paddingHorizontal: 16 }}>
+          <Pressable onPress={pickAvatarFromLibrary} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", height: 44, paddingHorizontal: 16 }}>
             <Text style={[typography.bodyBasicRegular, { color: "white" }]}>Open gallery</Text>
             <Icon name="gallery" size={24} color="white" />
           </Pressable>
@@ -178,6 +210,12 @@ export default function EditProfile() {
           </View>
         </Pressable>
       </Modal>
+
+      {snack ? (
+        <View style={{ position: "absolute", left: 16, right: 16, bottom: insets.bottom + 24, zIndex: 80 }}>
+          <Snackbar message={snack} />
+        </View>
+      ) : null}
     </View>
   );
 }
