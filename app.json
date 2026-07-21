@@ -28,6 +28,14 @@
       "expo-video",
       "expo-font",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Pulsee to access your camera to record videos and photos.",
+          "microphonePermission": "Allow Pulsee to access your microphone to record audio with your videos.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",

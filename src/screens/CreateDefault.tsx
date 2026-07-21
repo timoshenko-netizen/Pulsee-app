@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Image, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CameraView, useCameraPermissions, useMicrophonePermissions } from "expo-camera";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "@/design/icons/Icon";
@@ -17,15 +18,14 @@ import { soon } from "@/lib/soon";
   Recording -> Edit -> Choose cover -> Describe & publish, plus the
   music picker and the subscription/boost popup.
 
-  Real gap, flagged rather than faked: there's no camera/recording
-  package installed (expo-camera, expo-image-picker) in this project
-  yet, so Record has no live camera preview and can't actually capture
-  anything. It reuses one of Feed's already-real sample clips as the
-  stand-in "just recorded this" video for every later step — matching
-  the source's own single clip.mp4 stand-in used throughout its whole
-  flow — so the rest of the flow (edit controls, cover picking,
-  describe/publish, music) is real and navigable, just not backed by a
-  genuine capture.
+  Record now uses a genuine expo-camera preview and capture (photo via
+  takePictureAsync, video via recordAsync/stopRecording) instead of a
+  placeholder. The placeholder clip is only ever used as the initial
+  useVideoPlayer source before a real recording exists; the player is
+  swapped to the actual captured file via player.replaceAsync() as soon
+  as recording stops. Gallery upload (the small icon on Record) is a
+  separate capability (expo-image-picker) not installed yet, so it
+  stays a soon() stub rather than being silently faked.
 */
 const PLACEHOLDER_CLIP = require("../../assets/videos/16183412_720_1280_30fps.mp4");
 const DESC_MAX = 150;
@@ -57,10 +57,60 @@ export default function CreateDefault() {
   const [snack, setSnack] = useState<string | null>(null);
   const recTimer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
+  const [facing, setFacing] = useState<"back" | "front">("back");
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState(false);
+  const [capturedUri, setCapturedUri] = useState<string | null>(null);
+  const [capturedIsPhoto, setCapturedIsPhoto] = useState(false);
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [micPermission, requestMicPermission] = useMicrophonePermissions();
+  const cameraRef = useRef<CameraView>(null);
+  const needsMic = !photoMode;
+  const permissionsGranted = !!cameraPermission?.granted && (!needsMic || !!micPermission?.granted);
+  const canAskAgain = (cameraPermission?.canAskAgain ?? true) && (!needsMic || (micPermission?.canAskAgain ?? true));
+
   const player = useVideoPlayer(PLACEHOLDER_CLIP, (p) => {
     p.loop = true;
     p.muted = true;
   });
+
+  async function requestPermissions() {
+    await requestCameraPermission();
+    if (needsMic) await requestMicPermission();
+  }
+
+  async function takePhoto() {
+    if (!cameraRef.current || !cameraReady) return;
+    try {
+      const photo = await cameraRef.current.takePictureAsync();
+      if (photo?.uri) {
+        setCapturedUri(photo.uri);
+        setCapturedIsPhoto(true);
+        setStep("edit");
+      }
+    } catch {
+      // capture failed — stay on the record screen
+    }
+  }
+
+  async function startRecording() {
+    if (!cameraRef.current || !cameraReady) return;
+    setRecSeconds(0);
+    setStep("recording");
+    try {
+      const result = await cameraRef.current.recordAsync();
+      if (result?.uri) {
+        setCapturedUri(result.uri);
+        setCapturedIsPhoto(false);
+        await player.replaceAsync(result.uri);
+        setStep("edit");
+      } else {
+        setStep("record");
+      }
+    } catch {
+      setStep("record");
+    }
+  }
 
   useEffect(() => {
     if (step === "recording" || step === "edit" || step === "cover" || step === "describe") {
@@ -84,7 +134,7 @@ export default function CreateDefault() {
 
   function stopRecording() {
     clearInterval(recTimer.current);
-    setStep("edit");
+    cameraRef.current?.stopRecording();
   }
 
   function publish() {
@@ -102,15 +152,42 @@ export default function CreateDefault() {
         </View>
       )}
 
-      {step === "record" && (
-        <View style={{ flex: 1 }}>
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#111" }}>
-            <Icon name="camera-swap-outline" size={48} color="rgba(255,255,255,0.25)" />
-            <Text style={[typography.captionRegular, { color: "rgba(255,255,255,0.3)", marginTop: 12 }]}>
-              Camera preview isn't available yet
-            </Text>
-          </View>
+      {(step === "record" || step === "recording") && (
+        <View style={{ flex: 1, backgroundColor: "#111" }}>
+          {cameraError ? (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+              <Icon name="camera-swap-outline" size={48} color="rgba(255,255,255,0.25)" />
+              <Text style={[typography.captionRegular, { color: "rgba(255,255,255,0.3)", marginTop: 12 }]}>
+                Camera preview isn't available yet
+              </Text>
+            </View>
+          ) : !permissionsGranted ? (
+            <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 16, paddingHorizontal: 32 }}>
+              <Icon name="camera-outline" size={48} color="rgba(255,255,255,0.4)" />
+              <Text style={[typography.bodyLargeRegular, { color: "white", textAlign: "center" }]}>
+                {canAskAgain ? "Allow camera and microphone access to record" : "Camera access is disabled — enable it in Settings"}
+              </Text>
+              {canAskAgain ? (
+                <Button variant="primary" tone="level1" size="l" onPress={requestPermissions}>
+                  Allow access
+                </Button>
+              ) : null}
+            </View>
+          ) : (
+            <CameraView
+              ref={cameraRef}
+              style={{ flex: 1 }}
+              facing={facing}
+              mode={photoMode ? "picture" : "video"}
+              onCameraReady={() => setCameraReady(true)}
+              onMountError={() => setCameraError(true)}
+            />
+          )}
+        </View>
+      )}
 
+      {step === "record" && (
+        <View style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0 }}>
           <View style={{ position: "absolute", top: insets.top + 10, left: 0, right: 0, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14 }}>
             <Pressable onPress={() => router.replace("/feed")} style={{ width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.15)" }}>
               <Icon name="cross" size={18} color="white" />
@@ -128,7 +205,7 @@ export default function CreateDefault() {
                 <Text style={{ color: "white", fontFamily: "Montserrat", fontWeight: "700", fontSize: 14 }}>Add sound</Text>
               )}
             </Pressable>
-            <Pressable style={{ width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.15)" }}>
+            <Pressable onPress={() => setFacing((f) => (f === "back" ? "front" : "back"))} style={{ width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.15)" }}>
               <Icon name="camera-swap-outline" size={20} color="white" />
             </Pressable>
           </View>
@@ -137,13 +214,14 @@ export default function CreateDefault() {
             {photoMode ? (
               <View style={{ flex: 1 }} />
             ) : (
-              <Pressable style={{ width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.15)" }}>
+              <Pressable onPress={() => soon("Upload from gallery", "camera-capture")} style={{ width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.15)" }}>
                 <Icon name="gallery" size={24} color="white" />
               </Pressable>
             )}
             <Pressable
-              onPress={() => { setRecSeconds(0); setStep("recording"); }}
-              style={{ width: 78, height: 78, borderRadius: 39, borderWidth: 4, borderColor: "rgba(255,255,255,0.95)", alignItems: "center", justifyContent: "center" }}
+              onPress={photoMode ? takePhoto : startRecording}
+              disabled={!permissionsGranted || !cameraReady}
+              style={{ width: 78, height: 78, borderRadius: 39, borderWidth: 4, borderColor: "rgba(255,255,255,0.95)", alignItems: "center", justifyContent: "center", opacity: permissionsGranted && cameraReady ? 1 : 0.4 }}
             >
               <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: "#FD0058" }} />
             </Pressable>
@@ -153,8 +231,7 @@ export default function CreateDefault() {
       )}
 
       {step === "recording" && (
-        <View style={{ flex: 1 }}>
-          <VideoView player={player} style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0 }} contentFit="cover" nativeControls={false} />
+        <View style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0 }}>
           <View style={{ position: "absolute", top: insets.top + 24, left: 0, right: 0, alignItems: "center" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, height: 32, paddingHorizontal: 14, borderRadius: 100, backgroundColor: "rgba(0,0,0,0.45)" }}>
               <View style={{ width: 9, height: 9, borderRadius: 4.5, backgroundColor: "#FD0058" }} />
@@ -171,7 +248,11 @@ export default function CreateDefault() {
 
       {step === "edit" && (
         <View style={{ flex: 1 }}>
-          <VideoView player={player} style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0 }} contentFit="cover" nativeControls={false} />
+          {capturedIsPhoto && capturedUri ? (
+            <Image source={{ uri: capturedUri }} resizeMode="cover" style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0 }} />
+          ) : (
+            <VideoView player={player} style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0 }} contentFit="cover" nativeControls={false} />
+          )}
           <LinearGradient colors={["rgba(0,0,0,0.35)", "rgba(0,0,0,0)"]} style={{ position: "absolute", left: 0, top: 0, right: 0, height: 120 }} />
           <LinearGradient colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.5)"]} style={{ position: "absolute", left: 0, bottom: 0, right: 0, height: 220 }} />
 
@@ -257,7 +338,11 @@ export default function CreateDefault() {
 
           <View style={{ flexDirection: "row", gap: 16, paddingHorizontal: 20, paddingTop: 8 }}>
             <View style={{ width: 104, height: 142, borderRadius: 24, overflow: "hidden", backgroundColor: "#111" }}>
-              <VideoView player={player} style={{ flex: 1 }} contentFit="cover" nativeControls={false} />
+              {capturedIsPhoto && capturedUri ? (
+                <Image source={{ uri: capturedUri }} resizeMode="cover" style={{ flex: 1 }} />
+              ) : (
+                <VideoView player={player} style={{ flex: 1 }} contentFit="cover" nativeControls={false} />
+              )}
             </View>
             <View style={{ flex: 1, gap: 8 }}>
               <View style={{ flex: 1, borderRadius: 24, backgroundColor: "rgba(255,255,255,0.10)", padding: 16 }}>
