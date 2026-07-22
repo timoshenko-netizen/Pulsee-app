@@ -1,4 +1,4 @@
-import { ImageBackground, Pressable, Text, View } from "react-native";
+import { ImageBackground, Pressable, Text, View, type GestureResponderEvent } from "react-native";
 import Svg, { Path, Rect } from "react-native-svg";
 import { colors } from "@/design/theme";
 import { ReadTicks } from "./ReadTicks";
@@ -57,7 +57,7 @@ export type MessageBubbleProps = {
   reaction?: string;
   playing?: boolean;
   onTogglePlay?: () => void;
-  onLongPress?: () => void;
+  onLongPress?: (e: GestureResponderEvent) => void;
 };
 
 export function MessageBubble({ message, reaction, playing = false, onTogglePlay, onLongPress }: MessageBubbleProps) {

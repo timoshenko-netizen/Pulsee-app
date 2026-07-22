@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import { Dimensions, ScrollView, Text, TextInput, View, type GestureResponderEvent } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,21 +7,31 @@ import { colors, typography } from "@/design/theme";
 import { ChatHeader, useChatHeaderHeight } from "@/components/features/chats/ChatHeader";
 import { ChatInput } from "@/components/features/chats/ChatInput";
 import { MessageBubble } from "@/components/features/chats/MessageBubble";
+import { ActionMenu, type MenuAction } from "@/components/features/chats/ActionMenu";
+import { ChatToast, type ToastData } from "@/components/features/chats/ChatToast";
 import { PEOPLE, avatarUri, baseThreads } from "@/components/features/chats/data";
-import { isDivider, type Message, type ThreadItem } from "@/components/features/chats/types";
+import { isDivider, type Message, type MessageKind, type ThreadItem } from "@/components/features/chats/types";
 
 /*
-  Conversation thread (PulseeChats.dc.html). This milestone: message list
-  (text/voice/video + reactions + reply quotes), the input bar with send /
-  reply / edit, voice-video play toggle, and the two blocked states. The
-  long-press action menu, report + paid sheets, and toasts wire in the
-  following milestones (see PORT-SPEC.md).
+  Conversation thread (PulseeChats.dc.html). Message list, input bar,
+  long-press action menu (reactions + reply/copy/edit/delete/complain),
+  toasts, and blocked states. Report + paid sheets attach in the next
+  milestones (complain currently no-ops the sheet open — wired then).
 */
 type Blocked = "i" | "them" | null;
+type MenuState = { rk: string; mine: boolean; kind: MessageKind; top: number; side: "left" | "right" } | null;
+
+const SCREEN_H = Dimensions.get("window").height;
 
 function hhmm() {
   const d = new Date();
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function bubblePreview(m: Message): string {
+  if (m.t === "voice") return "Voice message";
+  if (m.t === "video") return "Video message";
+  return m.x ?? "";
 }
 
 export default function ChatsThread() {
@@ -32,6 +42,7 @@ export default function ChatsThread() {
   const person = PEOPLE[key] ?? { name: key, full: "" };
 
   const inputRef = useRef<TextInput>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [draft, setDraft] = useState("");
   const [extra, setExtra] = useState<Message[]>([]);
   const [reactions, setReactions] = useState<Record<string, string>>({});
@@ -40,9 +51,69 @@ export default function ChatsThread() {
   const [deleted, setDeleted] = useState<Record<string, boolean>>({});
   const [replyTo, setReplyTo] = useState<{ name: string; text: string } | null>(null);
   const [editing, setEditing] = useState<{ rk: string } | null>(null);
+  const [menu, setMenu] = useState<MenuState>(null);
+  const [toast, setToast] = useState<ToastData | null>(null);
   const [blocked, setBlocked] = useState<Blocked>(blockedParam === "i" || blockedParam === "them" ? blockedParam : null);
 
-  const items = useMemo<ThreadItem[]>(() => [...baseThreads()[key] ?? [], ...extra], [key, extra]);
+  const items = useMemo<ThreadItem[]>(() => [...(baseThreads()[key] ?? []), ...extra], [key, extra]);
+  const msgs = useMemo<Message[]>(() => items.filter((i) => !isDivider(i)) as Message[], [items]);
+
+  function flash(msg: string, icon: ToastData["icon"], tint: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ msg, icon, tint });
+    toastTimer.current = setTimeout(() => setToast(null), 2200);
+  }
+
+  function focusInput() {
+    setTimeout(() => inputRef.current?.focus(), 60);
+  }
+
+  function openMenu(rk: string, m: Message, e: GestureResponderEvent) {
+    const pageY = e.nativeEvent.pageY;
+    const top = Math.max(headerHeight + 8, Math.min(pageY - 40, SCREEN_H - 340));
+    setMenu({ rk, mine: m.s === "me", kind: m.t, top, side: m.s === "me" ? "right" : "left" });
+  }
+
+  function mkOf(rk: string): Message | undefined {
+    const mi = Number(rk.split("#")[1]);
+    return msgs[mi];
+  }
+
+  function pickReaction(emoji: string) {
+    if (menu) setReactions((r) => ({ ...r, [menu.rk]: emoji }));
+    setMenu(null);
+  }
+
+  function onAction(action: MenuAction) {
+    if (!menu) return;
+    const { rk } = menu;
+    const m = mkOf(rk);
+    setMenu(null);
+    if (!m) return;
+    switch (action) {
+      case "reply":
+        setReplyTo({ name: m.s === "me" ? "You" : person.name, text: bubblePreview(m) });
+        setEditing(null);
+        focusInput();
+        break;
+      case "copy":
+        flash("Copied to clipboard", "copy", "#31F1F0");
+        break;
+      case "edit":
+        setDraft(edited[rk] ?? m.x ?? "");
+        setEditing({ rk });
+        setReplyTo(null);
+        focusInput();
+        break;
+      case "delete":
+        setDeleted((d) => ({ ...d, [rk]: true }));
+        flash("Message deleted", "delete", colors.text.negative);
+        break;
+      case "complain":
+        // Report sheet wires in the next milestone.
+        break;
+    }
+  }
 
   function send() {
     const text = draft.trim();
@@ -51,6 +122,7 @@ export default function ChatsThread() {
       setEdited((e) => ({ ...e, [editing.rk]: text }));
       setEditing(null);
       setDraft("");
+      flash("Message edited", "edit", "#31F1F0");
       return;
     }
     const msg: Message = { s: "me", t: "text", x: text, tm: hhmm(), r: false };
@@ -84,7 +156,7 @@ export default function ChatsThread() {
                 style={{ borderRadius: 100, padding: 1, marginTop: 12 }}
               >
                 <Text
-                  onPress={() => setBlocked(null)}
+                  onPress={() => { setBlocked(null); flash("User unblocked", "block", "#31F1F0"); }}
                   style={{
                     height: 44,
                     lineHeight: 44,
@@ -120,7 +192,8 @@ export default function ChatsThread() {
               mi += 1;
               const rk = `${key}#${mi}`;
               if (deleted[rk]) return null;
-              const msg: Message = edited[rk] != null ? { ...item, x: edited[rk] } : item;
+              const base = msgs[mi];
+              const msg: Message = edited[rk] != null ? { ...base, x: edited[rk] } : base;
               return (
                 <MessageBubble
                   key={rk}
@@ -128,7 +201,7 @@ export default function ChatsThread() {
                   reaction={reactions[rk]}
                   playing={!!playing[rk]}
                   onTogglePlay={() => setPlaying((p) => ({ ...p, [rk]: !p[rk] }))}
-                  onLongPress={() => { /* action menu — next milestone */ }}
+                  onLongPress={(e) => openMenu(rk, msg, e)}
                 />
               );
             });
@@ -143,12 +216,25 @@ export default function ChatsThread() {
           onChangeText={setDraft}
           onSend={send}
           replyTo={replyTo}
-          onCancelReply={() => setReplyTo(null)}
+          onCancelReply={() => { setReplyTo(null); setEditing(null); }}
           bottomInset={insets.bottom + 12}
         />
       ) : null}
 
       <ChatHeader variant="thread" name={person.name} full={person.full} avatarUri={key ? avatarUri(key) : undefined} onBack={() => router.back()} />
+
+      <ActionMenu
+        open={menu !== null}
+        mine={menu?.mine ?? false}
+        kind={menu?.kind ?? "text"}
+        currentReaction={menu ? reactions[menu.rk] : undefined}
+        top={menu?.top ?? 0}
+        side={menu?.side ?? "left"}
+        onPickReaction={pickReaction}
+        onAction={onAction}
+        onClose={() => setMenu(null)}
+      />
+      <ChatToast toast={toast} />
     </View>
   );
 }
