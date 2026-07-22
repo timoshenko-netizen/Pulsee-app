@@ -38,11 +38,13 @@ export type BottomSheetProps = {
   draggable?: boolean;
   /** Top-corner radius. Defaults to the DS 24; Chats sheets use 40. */
   topRadius?: number;
+  /** Drag distance (px) past which release dismisses. Defaults to 110. */
+  dismissThreshold?: number;
 };
 
 const DISMISS_THRESHOLD = 110;
 
-export function BottomSheet({ open, onClose, children, topOverlay, draggable = false, topRadius = 24 }: BottomSheetProps) {
+export function BottomSheet({ open, onClose, children, topOverlay, draggable = false, topRadius = 24, dismissThreshold = DISMISS_THRESHOLD }: BottomSheetProps) {
   const dragY = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -55,7 +57,7 @@ export function BottomSheet({ open, onClose, children, topOverlay, draggable = f
       dragY.value = Math.max(0, e.translationY);
     })
     .onEnd(() => {
-      if (dragY.value > DISMISS_THRESHOLD) {
+      if (dragY.value > dismissThreshold) {
         if (onClose) runOnJS(onClose)();
       }
       dragY.value = withTiming(0, { duration: 220 });

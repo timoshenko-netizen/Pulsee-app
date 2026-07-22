@@ -3,7 +3,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "@/design/icons/Icon";
-import { StatusBar } from "@/components/patterns/status-bar/StatusBar";
 import { colors, typography } from "@/design/theme";
 import { ChatAvatar } from "./ChatAvatar";
 
@@ -16,12 +15,16 @@ import { ChatAvatar } from "./ChatAvatar";
   Uses the updated Pulsee Arrow glyph (arrow-direction-left) for back-nav.
 */
 const ROW_HEIGHT = 56;
-const STATUS_HEIGHT = 24;
 
-/** Total header height including the top safe-area inset — screens use this to offset their scroll. */
+/*
+  Total header height = top safe-area inset (the OS status bar lives there;
+  the gradient + blur extend up behind it) + the 56px nav row. Screens use
+  this to offset their scroll content. No decorative StatusBar is rendered
+  here — on a real device the OS draws it; faking one would double it.
+*/
 export function useChatHeaderHeight() {
   const insets = useSafeAreaInsets();
-  return insets.top + STATUS_HEIGHT + ROW_HEIGHT;
+  return insets.top + ROW_HEIGHT;
 }
 
 type CenterProps = { variant: "center"; title: string; onBack?: () => void };
@@ -47,7 +50,6 @@ export function ChatHeader(props: ChatHeaderProps) {
         locations={[0, 0.55, 1]}
         style={StyleSheet.absoluteFill}
       />
-      <StatusBar />
       {props.variant === "center" ? (
         <View style={{ height: ROW_HEIGHT, justifyContent: "center", alignItems: "center", paddingHorizontal: 12 }}>
           <View style={{ position: "absolute", left: 12, top: (ROW_HEIGHT - 44) / 2 }}>

@@ -1,7 +1,6 @@
 import { ScrollView, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { colors, typography } from "@/design/theme";
-import { soon } from "@/lib/soon";
 import { ChatHeader, useChatHeaderHeight } from "@/components/features/chats/ChatHeader";
 import { ConversationRow, PinnedRow } from "@/components/features/chats/InboxRow";
 import { INBOX_META, INBOX_ORDER, PEOPLE, PINNED_PREVIEWS, avatarUri } from "@/components/features/chats/data";
@@ -40,7 +39,7 @@ export default function ChatsInbox() {
           contentContainerStyle={{ paddingTop: headerHeight + 8, paddingBottom: 40 }}
         >
           <View style={{ gap: 16 }}>
-            <PinnedRow icon="heart-outline" title="Reactions" preview={PINNED_PREVIEWS.reactions} onPress={() => soon("Reactions", "activity")} />
+            <PinnedRow icon="heart-outline" title="Reactions" preview={PINNED_PREVIEWS.reactions} onPress={() => router.push("/activity")} />
             <PinnedRow icon="flash-outline" title="Messages from Pulsee" preview={PINNED_PREVIEWS.system} onPress={() => router.push("/chats/system")} />
             {INBOX_ORDER.map((key) => (
               <ConversationRow

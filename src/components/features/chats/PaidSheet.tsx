@@ -85,6 +85,7 @@ export function PaidSheet({ state, cost, onConfirm, onTopUp, onClose }: PaidShee
       onClose={onClose}
       draggable
       topRadius={40}
+      dismissThreshold={120}
       topOverlay={<Image source={TOP_BG} style={{ width: "100%", height: 160 }} resizeMode="cover" />}
     >
       <View style={{ paddingHorizontal: 24, paddingBottom: 24, gap: 24, alignItems: "center" }}>
