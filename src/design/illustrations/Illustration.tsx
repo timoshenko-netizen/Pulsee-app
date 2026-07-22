@@ -21,6 +21,8 @@ const ILLUSTRATIONS = {
   "paid-progress": require("./images/paid-progress.png"),
   "paid-success": require("./images/paid-success.png"),
   "paid-error": require("./images/paid-error.png"),
+  // Activity — free-boost promo art.
+  boost: require("./images/boost-3d.png"),
 } as const;
 
 export type IllustrationName = keyof typeof ILLUSTRATIONS;
