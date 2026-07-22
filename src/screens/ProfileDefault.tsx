@@ -240,7 +240,7 @@ export default function ProfileDefault() {
 
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 4, paddingHorizontal: 20, paddingTop: 10 }}>
                 {HOTS.map((h) => (
-                  <Pressable key={h.label} onPress={() => soon(h.label, h.targetFlow)} style={{ width: 77, height: 64, borderRadius: 24, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center", gap: 2 }}>
+                  <Pressable key={h.label} onPress={() => (h.targetFlow === "chats" ? router.push("/chats") : soon(h.label, h.targetFlow))} style={{ width: 77, height: 64, borderRadius: 24, backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center", gap: 2 }}>
                     <Icon name={h.icon} size={22} color="white" />
                     <Text style={[typography.captionRegular, { color: "white" }]}>{h.label}</Text>
                   </Pressable>
