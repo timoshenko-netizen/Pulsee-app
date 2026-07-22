@@ -9,6 +9,7 @@ import { ChatInput } from "@/components/features/chats/ChatInput";
 import { MessageBubble } from "@/components/features/chats/MessageBubble";
 import { ActionMenu, type MenuAction } from "@/components/features/chats/ActionMenu";
 import { ChatToast, type ToastData } from "@/components/features/chats/ChatToast";
+import { ReportSheet } from "@/components/features/chats/ReportSheet";
 import { PEOPLE, avatarUri, baseThreads } from "@/components/features/chats/data";
 import { isDivider, type Message, type MessageKind, type ThreadItem } from "@/components/features/chats/types";
 
@@ -53,6 +54,7 @@ export default function ChatsThread() {
   const [editing, setEditing] = useState<{ rk: string } | null>(null);
   const [menu, setMenu] = useState<MenuState>(null);
   const [toast, setToast] = useState<ToastData | null>(null);
+  const [complainOpen, setComplainOpen] = useState(false);
   const [blocked, setBlocked] = useState<Blocked>(blockedParam === "i" || blockedParam === "them" ? blockedParam : null);
 
   const items = useMemo<ThreadItem[]>(() => [...(baseThreads()[key] ?? []), ...extra], [key, extra]);
@@ -110,7 +112,7 @@ export default function ChatsThread() {
         flash("Message deleted", "delete", colors.text.negative);
         break;
       case "complain":
-        // Report sheet wires in the next milestone.
+        setComplainOpen(true);
         break;
     }
   }
@@ -235,6 +237,12 @@ export default function ChatsThread() {
         onClose={() => setMenu(null)}
       />
       <ChatToast toast={toast} />
+
+      <ReportSheet
+        open={complainOpen}
+        onClose={() => setComplainOpen(false)}
+        onSubmit={() => { setComplainOpen(false); flash("Report submitted", "complain", "#31F1F0"); }}
+      />
     </View>
   );
 }
