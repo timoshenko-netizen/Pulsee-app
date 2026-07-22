@@ -47,7 +47,7 @@ export function ReportSheet({ open, onClose, onSubmit }: ReportSheetProps) {
   }, [open]);
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
+    <BottomSheet open={open} onClose={onClose} topRadius={40}>
       <View style={{ paddingHorizontal: 24, paddingBottom: 24, gap: 18 }}>
         <View style={{ gap: 4 }}>
           <Text style={[typography.title, { color: "#fff" }]}>Report this message</Text>

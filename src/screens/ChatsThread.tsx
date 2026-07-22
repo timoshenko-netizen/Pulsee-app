@@ -10,7 +10,9 @@ import { MessageBubble } from "@/components/features/chats/MessageBubble";
 import { ActionMenu, type MenuAction } from "@/components/features/chats/ActionMenu";
 import { ChatToast, type ToastData } from "@/components/features/chats/ChatToast";
 import { ReportSheet } from "@/components/features/chats/ReportSheet";
-import { PEOPLE, avatarUri, baseThreads } from "@/components/features/chats/data";
+import { PaidSheet, type PaidState } from "@/components/features/chats/PaidSheet";
+import { DEFAULT_CHAT_COST, INBOX_META, PEOPLE, avatarUri, baseThreads } from "@/components/features/chats/data";
+import { soon } from "@/lib/soon";
 import { isDivider, type Message, type MessageKind, type ThreadItem } from "@/components/features/chats/types";
 
 /*
@@ -44,6 +46,7 @@ export default function ChatsThread() {
 
   const inputRef = useRef<TextInput>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const payTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [draft, setDraft] = useState("");
   const [extra, setExtra] = useState<Message[]>([]);
   const [reactions, setReactions] = useState<Record<string, string>>({});
@@ -55,6 +58,12 @@ export default function ChatsThread() {
   const [menu, setMenu] = useState<MenuState>(null);
   const [toast, setToast] = useState<ToastData | null>(null);
   const [complainOpen, setComplainOpen] = useState(false);
+  const [paid, setPaid] = useState<PaidState | null>(null);
+  const [pending, setPending] = useState<string | null>(null);
+  const [unlocked, setUnlocked] = useState<Record<string, boolean>>({});
+
+  const cost = DEFAULT_CHAT_COST;
+  const isLocked = !!INBOX_META[key]?.locked && !unlocked[key];
   const [blocked, setBlocked] = useState<Blocked>(blockedParam === "i" || blockedParam === "them" ? blockedParam : null);
 
   const items = useMemo<ThreadItem[]>(() => [...(baseThreads()[key] ?? []), ...extra], [key, extra]);
@@ -117,6 +126,12 @@ export default function ChatsThread() {
     }
   }
 
+  function pushText(text: string, reply?: { name: string; text: string } | null) {
+    const msg: Message = { s: "me", t: "text", x: text, tm: hhmm(), r: false };
+    if (reply) msg.reply = reply;
+    setExtra((prev) => [...prev, msg]);
+  }
+
   function send() {
     const text = draft.trim();
     if (!text) return;
@@ -127,11 +142,38 @@ export default function ChatsThread() {
       flash("Message edited", "edit", "#31F1F0");
       return;
     }
-    const msg: Message = { s: "me", t: "text", x: text, tm: hhmm(), r: false };
-    if (replyTo) msg.reply = replyTo;
-    setExtra((prev) => [...prev, msg]);
+    if (isLocked) {
+      // First message in a locked conversation triggers the paid flow.
+      setPending(text);
+      setPaid("limits");
+      setDraft("");
+      return;
+    }
+    pushText(text, replyTo);
     setDraft("");
     setReplyTo(null);
+  }
+
+  function confirmPaid() {
+    setPaid("progress");
+    if (payTimer.current) clearTimeout(payTimer.current);
+    payTimer.current = setTimeout(() => {
+      setUnlocked((u) => ({ ...u, [key]: true }));
+      if (pending) pushText(pending, replyTo);
+      setReplyTo(null);
+      setPaid("success");
+    }, 1400);
+  }
+
+  function closePaid() {
+    if (payTimer.current) clearTimeout(payTimer.current);
+    setPaid(null);
+    setPending(null);
+  }
+
+  function topUp() {
+    closePaid();
+    soon("Wallet", "wallet");
   }
 
   const canType = blocked === null;
@@ -243,6 +285,8 @@ export default function ChatsThread() {
         onClose={() => setComplainOpen(false)}
         onSubmit={() => { setComplainOpen(false); flash("Report submitted", "complain", "#31F1F0"); }}
       />
+
+      <PaidSheet state={paid} cost={cost} onConfirm={confirmPaid} onTopUp={topUp} onClose={closePaid} />
     </View>
   );
 }

@@ -36,11 +36,13 @@ export type BottomSheetProps = {
   topOverlay?: ReactNode;
   /** Enables pointer drag-to-dismiss on the handle. */
   draggable?: boolean;
+  /** Top-corner radius. Defaults to the DS 24; Chats sheets use 40. */
+  topRadius?: number;
 };
 
 const DISMISS_THRESHOLD = 110;
 
-export function BottomSheet({ open, onClose, children, topOverlay, draggable = false }: BottomSheetProps) {
+export function BottomSheet({ open, onClose, children, topOverlay, draggable = false, topRadius = 24 }: BottomSheetProps) {
   const dragY = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -74,8 +76,8 @@ export function BottomSheet({ open, onClose, children, topOverlay, draggable = f
               bottom: 0,
               overflow: "hidden",
               backgroundColor: colors.bg.primary,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
+              borderTopLeftRadius: topRadius,
+              borderTopRightRadius: topRadius,
               paddingTop: 10,
               paddingBottom: 24,
             },
