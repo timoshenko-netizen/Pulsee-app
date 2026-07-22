@@ -9,6 +9,10 @@ import ArrowClockBack from "./svgs/arrow-clock-back.svg";
 import ArrowDiagonalInLeft from "./svgs/arrow-diagonal-in-left.svg";
 import ArrowDiagonalInRight from "./svgs/arrow-diagonal-in-right.svg";
 import ArrowDiagonalOut from "./svgs/arrow-diagonal-out.svg";
+import ArrowDirectionDown from "./svgs/arrow-direction-down.svg";
+import ArrowDirectionLeft from "./svgs/arrow-direction-left.svg";
+import ArrowDirectionRight from "./svgs/arrow-direction-right.svg";
+import ArrowDirectionUp from "./svgs/arrow-direction-up.svg";
 import ArrowDown from "./svgs/arrow-down.svg";
 import ArrowLeft from "./svgs/arrow-left.svg";
 import ArrowLineDown from "./svgs/arrow-line-down.svg";
@@ -34,6 +38,7 @@ import BellFill from "./svgs/bell-fill.svg";
 import BellOutline from "./svgs/bell-outline.svg";
 import BinFill from "./svgs/bin-fill.svg";
 import BinOutline from "./svgs/bin-outline.svg";
+import Block from "./svgs/block.svg";
 import CalendarFill from "./svgs/calendar-fill.svg";
 import CalendarOutline from "./svgs/calendar-outline.svg";
 import CameraFill from "./svgs/camera-fill.svg";
@@ -55,6 +60,8 @@ import CoinFill from "./svgs/coin-fill.svg";
 import CoinOutline from "./svgs/coin-outline.svg";
 import CoinsFill from "./svgs/coins-fill.svg";
 import CoinsOutline from "./svgs/coins-outline.svg";
+import Complain from "./svgs/complain.svg";
+import Copy from "./svgs/copy.svg";
 import CreditCardFill from "./svgs/credit-card-fill.svg";
 import CreditCardOutline from "./svgs/credit-card-outline.svg";
 import CrossCircleFill from "./svgs/cross-circle-fill.svg";
@@ -63,8 +70,10 @@ import Cross from "./svgs/cross.svg";
 import CrossedCircle from "./svgs/crossed-circle.svg";
 import CupFill from "./svgs/cup-fill.svg";
 import CupOutline from "./svgs/cup-outline.svg";
+import Delete from "./svgs/delete.svg";
 import DotsHorizontal from "./svgs/dots-horizontal.svg";
 import DotsVertical from "./svgs/dots-vertical.svg";
+import Edit from "./svgs/edit.svg";
 import EnvelopeFill from "./svgs/envelope-fill.svg";
 import EnvelopeOutline from "./svgs/envelope-outline.svg";
 import ExclamationBubbleFill from "./svgs/exclamation-bubble-fill.svg";
@@ -173,6 +182,7 @@ import QuestionBubbleFill from "./svgs/question-bubble-fill.svg";
 import QuestionBubbleOutline from "./svgs/question-bubble-outline.svg";
 import Question from "./svgs/question.svg";
 import Rectangles from "./svgs/rectangles.svg";
+import Reply from "./svgs/reply.svg";
 import RocketFill from "./svgs/rocket-fill.svg";
 import RocketOutline from "./svgs/rocket-outline.svg";
 import Scan from "./svgs/scan.svg";
@@ -238,6 +248,10 @@ export const ICON_REGISTRY: Record<string, FC<SvgProps>> = {
   "arrow-diagonal-in-left": ArrowDiagonalInLeft,
   "arrow-diagonal-in-right": ArrowDiagonalInRight,
   "arrow-diagonal-out": ArrowDiagonalOut,
+  "arrow-direction-down": ArrowDirectionDown,
+  "arrow-direction-left": ArrowDirectionLeft,
+  "arrow-direction-right": ArrowDirectionRight,
+  "arrow-direction-up": ArrowDirectionUp,
   "arrow-down": ArrowDown,
   "arrow-left": ArrowLeft,
   "arrow-line-down": ArrowLineDown,
@@ -263,6 +277,7 @@ export const ICON_REGISTRY: Record<string, FC<SvgProps>> = {
   "bell-outline": BellOutline,
   "bin-fill": BinFill,
   "bin-outline": BinOutline,
+  "block": Block,
   "calendar-fill": CalendarFill,
   "calendar-outline": CalendarOutline,
   "camera-fill": CameraFill,
@@ -284,6 +299,8 @@ export const ICON_REGISTRY: Record<string, FC<SvgProps>> = {
   "coin-outline": CoinOutline,
   "coins-fill": CoinsFill,
   "coins-outline": CoinsOutline,
+  "complain": Complain,
+  "copy": Copy,
   "credit-card-fill": CreditCardFill,
   "credit-card-outline": CreditCardOutline,
   "cross-circle-fill": CrossCircleFill,
@@ -292,8 +309,10 @@ export const ICON_REGISTRY: Record<string, FC<SvgProps>> = {
   "crossed-circle": CrossedCircle,
   "cup-fill": CupFill,
   "cup-outline": CupOutline,
+  "delete": Delete,
   "dots-horizontal": DotsHorizontal,
   "dots-vertical": DotsVertical,
+  "edit": Edit,
   "envelope-fill": EnvelopeFill,
   "envelope-outline": EnvelopeOutline,
   "exclamation-bubble-fill": ExclamationBubbleFill,
@@ -402,6 +421,7 @@ export const ICON_REGISTRY: Record<string, FC<SvgProps>> = {
   "question-bubble-outline": QuestionBubbleOutline,
   "question": Question,
   "rectangles": Rectangles,
+  "reply": Reply,
   "rocket-fill": RocketFill,
   "rocket-outline": RocketOutline,
   "scan": Scan,
@@ -468,6 +488,10 @@ export const ICON_VIEWBOX: Record<string, { width: number; height: number }> = {
   "arrow-diagonal-in-left": { width: 18.5996, height: 18.5996 },
   "arrow-diagonal-in-right": { width: 18.5996, height: 18.5996 },
   "arrow-diagonal-out": { width: 18.6648, height: 18.6628 },
+  "arrow-direction-down": { width: 24, height: 24 },
+  "arrow-direction-left": { width: 24, height: 24 },
+  "arrow-direction-right": { width: 24, height: 24 },
+  "arrow-direction-up": { width: 24, height: 24 },
   "arrow-down": { width: 12.2706, height: 14.4998 },
   "arrow-left": { width: 14.4998, height: 12.2706 },
   "arrow-line-down": { width: 13, height: 17.9145 },
@@ -493,6 +517,7 @@ export const ICON_VIEWBOX: Record<string, { width: number; height: number }> = {
   "bell-outline": { width: 17.3154, height: 20.1055 },
   "bin-fill": { width: 16.5, height: 20 },
   "bin-outline": { width: 16.5, height: 20 },
+  "block": { width: 24, height: 24 },
   "calendar-fill": { width: 19.1406, height: 20.2803 },
   "calendar-outline": { width: 19.1748, height: 20.1055 },
   "camera-fill": { width: 21.1426, height: 18.5 },
@@ -514,6 +539,8 @@ export const ICON_VIEWBOX: Record<string, { width: number; height: number }> = {
   "coin-outline": { width: 20, height: 20 },
   "coins-fill": { width: 21.5996, height: 21.5273 },
   "coins-outline": { width: 21.5996, height: 21.5273 },
+  "complain": { width: 24, height: 24 },
+  "copy": { width: 24, height: 24 },
   "credit-card-fill": { width: 20, height: 16.2998 },
   "credit-card-outline": { width: 20, height: 16.2998 },
   "cross-circle-fill": { width: 20.0001, height: 20 },
@@ -522,8 +549,10 @@ export const ICON_VIEWBOX: Record<string, { width: number; height: number }> = {
   "crossed-circle": { width: 20, height: 20 },
   "cup-fill": { width: 20.9404, height: 19.18 },
   "cup-outline": { width: 20.9434, height: 19.1758 },
+  "delete": { width: 24, height: 24 },
   "dots-horizontal": { width: 15.0229, height: 3.00459 },
   "dots-vertical": { width: 15.0229, height: 3.00459 },
+  "edit": { width: 24, height: 24 },
   "envelope-fill": { width: 20, height: 15 },
   "envelope-outline": { width: 20, height: 15 },
   "exclamation-bubble-fill": { width: 20.0974, height: 19.1756 },
@@ -632,6 +661,7 @@ export const ICON_VIEWBOX: Record<string, { width: number; height: number }> = {
   "question-bubble-outline": { width: 20.0001, height: 20 },
   "question": { width: 12.8438, height: 18.1406 },
   "rectangles": { width: 14, height: 16 },
+  "reply": { width: 24, height: 24 },
   "rocket-fill": { width: 20, height: 20 },
   "rocket-outline": { width: 20, height: 20 },
   "scan": { width: 19.4999, height: 19.4999 },
@@ -691,4 +721,4 @@ export const ICON_VIEWBOX: Record<string, { width: number; height: number }> = {
   "wallet-outline": { width: 20.3008, height: 17.5 },
 };
 
-export type IconName = "18-fill" | "18-outline" | "arrow-clock-back" | "arrow-diagonal-in-left" | "arrow-diagonal-in-right" | "arrow-diagonal-out" | "arrow-down" | "arrow-left" | "arrow-line-down" | "arrow-line-up" | "arrow-out" | "arrow-right" | "arrow-rise-down" | "arrow-rise-up" | "arrow-round-back" | "arrow-up" | "arrows-circlepath" | "arrows-squarepath" | "arrows" | "arrowshape-right-dollar-fill" | "arrowshape-right-dollar-outline" | "arrowshape-right-fill" | "arrowshape-right-outline" | "bag-fill" | "bag-outline" | "basket-fill" | "basket-outline" | "bell-fill" | "bell-outline" | "bin-fill" | "bin-outline" | "calendar-fill" | "calendar-outline" | "camera-fill" | "camera-outline" | "camera-swap-fill" | "camera-swap-outline" | "chat-1" | "chat-2-fill" | "chat-2-outline" | "chat-check-fill" | "chat-check-outline" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chili-pepper-fill" | "chili-pepper-outline" | "coin-fill" | "coin-outline" | "coins-fill" | "coins-outline" | "credit-card-fill" | "credit-card-outline" | "cross-circle-fill" | "cross-circle-outline" | "cross" | "crossed-circle" | "cup-fill" | "cup-outline" | "dots-horizontal" | "dots-vertical" | "envelope-fill" | "envelope-outline" | "exclamation-bubble-fill" | "exclamation-bubble-outline" | "eye-crossed-fill" | "eye-crossed-outline" | "eye-fill" | "eye-outline" | "feed-arrow-rise" | "feed-avatar-ring" | "feed-claim-bg" | "feed-claim-dollar" | "feed-clock-back" | "feed-coin-progress-separated" | "feed-coin-progress" | "feed-comment-tapped" | "feed-comment" | "feed-finger-body" | "feed-finger-stroke" | "feed-finger-tapped" | "feed-follow-plus" | "feed-gift-vector" | "feed-heart-broken" | "feed-hearts-mini" | "feed-like-tapped" | "feed-like" | "feed-moderation" | "feed-more" | "feed-music-cover-mask" | "feed-music-cover-stroke" | "feed-music-note" | "feed-share-tapped" | "feed-share" | "feed-start-earning-stroke" | "feed-timer-indicator" | "flash-fill" | "flash-outline" | "gallery" | "gear-fill" | "gear-outline" | "ghost-fill" | "ghost-outline" | "gift-fill" | "gift-outline" | "hand-raised-fill" | "hand-raised-outline" | "headset-fill" | "headset-outline" | "heart-broken" | "heart-double" | "heart-fill" | "heart-outline" | "hearts" | "horizontal-3-lines" | "human-circle1-fill" | "human-circle1-outline" | "human-fill" | "human-outline" | "human2-fill" | "human2-outline" | "info-circle-fill" | "info-circle-outline" | "letter-b-fill" | "letter-b-outline" | "life-preserver-fill" | "life-preserver-outline" | "link" | "list-fill" | "list-outline" | "live-badge" | "live-fill" | "live-outline" | "magnifying-glass" | "minus" | "mixer-fill" | "mixer-outline" | "new" | "note-fill" | "note-outline" | "note-star" | "padlock-fill" | "padlock-opened-fill" | "padlock-opened-outline" | "padlock-outline" | "paper-fill" | "paper-outline" | "paper-plane-2" | "paper-plane-fill" | "paper-plane-outline" | "pause-circle-fill" | "pause-circle-outline" | "pencil-fill" | "pencil-outline" | "person-dollar-fill" | "person-dollar-outline" | "person-plus-fill" | "person-plus-outline" | "persons-fill" | "persons-outline" | "plus-square-fill" | "plus-square-outline" | "plus" | "qrcode-fill" | "qrcode-outline" | "question-bubble-fill" | "question-bubble-outline" | "question" | "rectangles" | "rocket-fill" | "rocket-outline" | "scan" | "scissors" | "shaka-fill" | "shaka-outline" | "shield-fill" | "shield-outline" | "sound-lines" | "speaker-cross-fill" | "speaker-cross-outline" | "speaker-fill" | "speaker-outline" | "square-on-square-fill" | "square-on-square-outline" | "stack-fill" | "stack-outline" | "star-2" | "star-fill" | "star-lines-fill" | "star-lines-outline" | "star-outline" | "status-battery" | "status-bluetooth" | "status-signal" | "status-wifi" | "store-fill" | "store-outline" | "tabbar-create-fill" | "tabbar-create-outline" | "tabbar-earn-fill" | "tabbar-earn-outline" | "tabbar-feed-fill" | "tabbar-feed-outline" | "tabbar-market-fill" | "tabbar-market-outline" | "tabbar-profile-fill" | "tabbar-profile-outline" | "thumb-down-fill" | "thumb-down-outline" | "thumb-up-fill" | "thumb-up-outline" | "tick-circle-fill" | "tick-circle-outline" | "tick-double" | "tick-figure-fill" | "tick-figure-outline" | "tick-single" | "time-fill" | "time-outline" | "timer" | "triangle-fill" | "triangle-in-square-fill" | "triangle-in-square-outline" | "triangle-outline" | "wallet-fill" | "wallet-outline";
+export type IconName = "18-fill" | "18-outline" | "arrow-clock-back" | "arrow-diagonal-in-left" | "arrow-diagonal-in-right" | "arrow-diagonal-out" | "arrow-direction-down" | "arrow-direction-left" | "arrow-direction-right" | "arrow-direction-up" | "arrow-down" | "arrow-left" | "arrow-line-down" | "arrow-line-up" | "arrow-out" | "arrow-right" | "arrow-rise-down" | "arrow-rise-up" | "arrow-round-back" | "arrow-up" | "arrows-circlepath" | "arrows-squarepath" | "arrows" | "arrowshape-right-dollar-fill" | "arrowshape-right-dollar-outline" | "arrowshape-right-fill" | "arrowshape-right-outline" | "bag-fill" | "bag-outline" | "basket-fill" | "basket-outline" | "bell-fill" | "bell-outline" | "bin-fill" | "bin-outline" | "block" | "calendar-fill" | "calendar-outline" | "camera-fill" | "camera-outline" | "camera-swap-fill" | "camera-swap-outline" | "chat-1" | "chat-2-fill" | "chat-2-outline" | "chat-check-fill" | "chat-check-outline" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chili-pepper-fill" | "chili-pepper-outline" | "coin-fill" | "coin-outline" | "coins-fill" | "coins-outline" | "complain" | "copy" | "credit-card-fill" | "credit-card-outline" | "cross-circle-fill" | "cross-circle-outline" | "cross" | "crossed-circle" | "cup-fill" | "cup-outline" | "delete" | "dots-horizontal" | "dots-vertical" | "edit" | "envelope-fill" | "envelope-outline" | "exclamation-bubble-fill" | "exclamation-bubble-outline" | "eye-crossed-fill" | "eye-crossed-outline" | "eye-fill" | "eye-outline" | "feed-arrow-rise" | "feed-avatar-ring" | "feed-claim-bg" | "feed-claim-dollar" | "feed-clock-back" | "feed-coin-progress-separated" | "feed-coin-progress" | "feed-comment-tapped" | "feed-comment" | "feed-finger-body" | "feed-finger-stroke" | "feed-finger-tapped" | "feed-follow-plus" | "feed-gift-vector" | "feed-heart-broken" | "feed-hearts-mini" | "feed-like-tapped" | "feed-like" | "feed-moderation" | "feed-more" | "feed-music-cover-mask" | "feed-music-cover-stroke" | "feed-music-note" | "feed-share-tapped" | "feed-share" | "feed-start-earning-stroke" | "feed-timer-indicator" | "flash-fill" | "flash-outline" | "gallery" | "gear-fill" | "gear-outline" | "ghost-fill" | "ghost-outline" | "gift-fill" | "gift-outline" | "hand-raised-fill" | "hand-raised-outline" | "headset-fill" | "headset-outline" | "heart-broken" | "heart-double" | "heart-fill" | "heart-outline" | "hearts" | "horizontal-3-lines" | "human-circle1-fill" | "human-circle1-outline" | "human-fill" | "human-outline" | "human2-fill" | "human2-outline" | "info-circle-fill" | "info-circle-outline" | "letter-b-fill" | "letter-b-outline" | "life-preserver-fill" | "life-preserver-outline" | "link" | "list-fill" | "list-outline" | "live-badge" | "live-fill" | "live-outline" | "magnifying-glass" | "minus" | "mixer-fill" | "mixer-outline" | "new" | "note-fill" | "note-outline" | "note-star" | "padlock-fill" | "padlock-opened-fill" | "padlock-opened-outline" | "padlock-outline" | "paper-fill" | "paper-outline" | "paper-plane-2" | "paper-plane-fill" | "paper-plane-outline" | "pause-circle-fill" | "pause-circle-outline" | "pencil-fill" | "pencil-outline" | "person-dollar-fill" | "person-dollar-outline" | "person-plus-fill" | "person-plus-outline" | "persons-fill" | "persons-outline" | "plus-square-fill" | "plus-square-outline" | "plus" | "qrcode-fill" | "qrcode-outline" | "question-bubble-fill" | "question-bubble-outline" | "question" | "rectangles" | "reply" | "rocket-fill" | "rocket-outline" | "scan" | "scissors" | "shaka-fill" | "shaka-outline" | "shield-fill" | "shield-outline" | "sound-lines" | "speaker-cross-fill" | "speaker-cross-outline" | "speaker-fill" | "speaker-outline" | "square-on-square-fill" | "square-on-square-outline" | "stack-fill" | "stack-outline" | "star-2" | "star-fill" | "star-lines-fill" | "star-lines-outline" | "star-outline" | "status-battery" | "status-bluetooth" | "status-signal" | "status-wifi" | "store-fill" | "store-outline" | "tabbar-create-fill" | "tabbar-create-outline" | "tabbar-earn-fill" | "tabbar-earn-outline" | "tabbar-feed-fill" | "tabbar-feed-outline" | "tabbar-market-fill" | "tabbar-market-outline" | "tabbar-profile-fill" | "tabbar-profile-outline" | "thumb-down-fill" | "thumb-down-outline" | "thumb-up-fill" | "thumb-up-outline" | "tick-circle-fill" | "tick-circle-outline" | "tick-double" | "tick-figure-fill" | "tick-figure-outline" | "tick-single" | "time-fill" | "time-outline" | "timer" | "triangle-fill" | "triangle-in-square-fill" | "triangle-in-square-outline" | "triangle-outline" | "wallet-fill" | "wallet-outline";
