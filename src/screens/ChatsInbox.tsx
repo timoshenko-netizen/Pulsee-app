@@ -13,7 +13,7 @@ import { INBOX_META, INBOX_ORDER, PEOPLE, PINNED_PREVIEWS, avatarUri } from "@/c
   data-driven, but reachable here via ?view=empty|allBlocked for QA (the
   prototype's dev panel enumerated them — we don't ship that panel).
 */
-type View = "full" | "empty" | "allBlocked";
+type InboxView = "full" | "empty" | "allBlocked";
 
 function EmptyState({ title }: { title: string }) {
   const headerHeight = useChatHeaderHeight();
@@ -29,8 +29,8 @@ function EmptyState({ title }: { title: string }) {
 
 export default function ChatsInbox() {
   const headerHeight = useChatHeaderHeight();
-  const params = useLocalSearchParams<{ view?: View }>();
-  const view: View = params.view === "empty" || params.view === "allBlocked" ? params.view : "full";
+  const params = useLocalSearchParams<{ view?: string }>();
+  const view: InboxView = params.view === "empty" || params.view === "allBlocked" ? params.view : "full";
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg.primary }}>

@@ -32,7 +32,7 @@ export type Divider = { d: string };
 
 export type ThreadItem = Message | Divider;
 
-export const isDivider = (i: ThreadItem): i is Divider => "d" in i;
+export const isDivider = (i: object): i is Divider => "d" in i;
 
 /** Inbox row metadata per person. */
 export type InboxMeta = {
