@@ -13,7 +13,7 @@ become available.
 
 | File | Used by | Current stand-in |
 |---|---|---|
-| `plitki.png` / `plitki.mp4` | Onboarding hero background | Real tiled-video mosaic using the project's own sample clips (`app/(auth)/onboarding.tsx`), muted/looping — not a fabricated video |
+| `plitki.mp4` | Onboarding hero background | **Resolved** — the real file now lives at `assets/videos/plitki.mp4` and is used directly in `app/(auth)/onboarding.tsx` |
 | `boost-avatar.png` | Create → boost popup | `star-2` icon (illustration-style asset, left as an icon rather than fabricated art) |
 | `verified-badge.png` | Profile → verified-badge sheet | `tick-figure-fill` icon |
 | `gender-sheet-top-bg.png` | Profile → gender/badge/more sheets top glow | Gradient (already used elsewhere for sheets) |

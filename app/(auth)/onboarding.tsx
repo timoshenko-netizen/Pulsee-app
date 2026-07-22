@@ -9,44 +9,19 @@ import { typography } from "@/design/theme";
 
 /*
   Ported from PulseeSignup.dc.html's onboarding screen (first launch).
-  The source's hero is a single looping video (assets/signup/plitki.mp4,
-  "plitki" = "tiles"), which never shipped with the handoff bundle (see
-  src/screens/auth/assets/README.md). Recreated as a real tiled-video
-  mosaic using the project's own existing sample clips instead of a
-  fabricated stand-in — muted/looping, same idea as the source's tiled
-  background.
+  Hero background is the real plitki.mp4 clip from the design handoff
+  (assets/videos/plitki.mp4), looping and muted, matching the source
+  exactly.
 */
-const HERO_CLIPS = [
-  require("../../assets/videos/16183412_720_1280_30fps.mp4"),
-  require("../../assets/videos/15980421-hd_720_1280_30fps.mp4"),
-  require("../../assets/videos/8347677-sd_506_960_30fps.mp4"),
-];
+const PLITKI_CLIP = require("../../assets/videos/plitki.mp4");
 
 export default function Onboarding() {
   const insets = useSafeAreaInsets();
-  const tile0 = useVideoPlayer(HERO_CLIPS[0], (p) => { p.loop = true; p.muted = true; p.play(); });
-  const tile1 = useVideoPlayer(HERO_CLIPS[1], (p) => { p.loop = true; p.muted = true; p.play(); });
-  const tile2 = useVideoPlayer(HERO_CLIPS[2], (p) => { p.loop = true; p.muted = true; p.play(); });
-  const tile3 = useVideoPlayer(HERO_CLIPS[0], (p) => { p.loop = true; p.muted = true; p.play(); });
-  const tile4 = useVideoPlayer(HERO_CLIPS[1], (p) => { p.loop = true; p.muted = true; p.play(); });
-  const tile5 = useVideoPlayer(HERO_CLIPS[2], (p) => { p.loop = true; p.muted = true; p.play(); });
-  const tileRows = [
-    [tile0, tile1],
-    [tile2, tile3],
-    [tile4, tile5],
-  ];
+  const player = useVideoPlayer(PLITKI_CLIP, (p) => { p.loop = true; p.muted = true; p.play(); });
   return (
     <View style={{ flex: 1, backgroundColor: "#080A0B" }}>
       <View style={{ flex: 1 }}>
-        <View style={{ flex: 1 }}>
-          {tileRows.map((row, i) => (
-            <View key={i} style={{ flexDirection: "row", height: "33.334%" }}>
-              {row.map((p, j) => (
-                <VideoView key={j} player={p} style={{ width: "50%", height: "100%" }} contentFit="cover" nativeControls={false} />
-              ))}
-            </View>
-          ))}
-        </View>
+        <VideoView player={player} style={{ flex: 1 }} contentFit="cover" nativeControls={false} />
         <LinearGradient
           colors={["rgba(8,10,11,0.55)", "rgba(8,10,11,0.15)"]}
           start={{ x: 0.5, y: 0 }}
